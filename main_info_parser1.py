@@ -8,6 +8,7 @@ import sys
 import time
 from multiprocessing import Pool,cpu_count
 from gxml_splitter import extract_xml_parts
+from impala.dbapi import connect 
 
 #############################################################################
 def create_line(xml_part):
@@ -50,7 +51,7 @@ def create_line(xml_part):
     return result
 
 def process(xml_parts,out_file_name):
-    of = open("./results/" + out_file_name, "w")
+    of = open(out_file_name, "w")
     start_time = time.time()
     pool = Pool(processes = cpu_count()-1 if cpu_count() > 1 else 1)
     results = pool.map(create_line, xml_parts)
@@ -65,6 +66,11 @@ if __name__ == "__main__":
 #    for lm in dom:
 #        print create_line(lm)
 
-    process(extract_xml_parts("ipg180102.xml"),"pf_main_info1.tsv")
+    import routines.dbs_handlers as dbi
+    import routines.tbl_handlers as tables
+#    dbi.init_dbs()
+#    tables.init_tables()
+    tables.load_tables()
+#    process(extract_xml_parts("ipg180102.xml"),"./results/main/data.tsv")
 
 

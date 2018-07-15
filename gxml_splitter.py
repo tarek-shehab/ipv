@@ -27,3 +27,4 @@ def extract_xml_parts(xml_file):
 #    print "Total parts:", i
 
     return xmls
+

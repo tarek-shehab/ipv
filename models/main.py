@@ -1,8 +1,11 @@
-
-ext_header = 'CREATE EXTERNAL TABLE IF NOT EXISTS `db_ext`.`main` '
-int_header = 'CREATE TABLE IF NOT EXISTS `db_int`.`main` '
-ext_body = ('(proc_date STRING,'
-            'app_id BIGINT,'
+######################################################################
+#
+######################################################################
+ext_db = 'ipv_ext'
+int_db = 'ipv_db'
+table  = 'main'
+header = 'CREATE TABLE IF NOT EXISTS'
+body   =   ('(app_id BIGINT,'
             'pub_ref_country STRING,'
             'pub_ref_doc_number STRING,'
             'pub_ref_kind STRING,'
@@ -25,32 +28,17 @@ ext_body = ('(proc_date STRING,'
             'rel_pub_country STRING,'
             'rel_pub_doc_number STRING,'
             'rel_pub_kind STRING,'
-            'rel_pub_date STRING) '
-        'PARTITIONED BY (day STRING, hour STRING) '
-        'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (params['instance'],params['raw_log']), 
+            'rel_pub_date STRING) ')
 
-    to_extract = [".//application-reference/document-id/doc-number",
-                  ".//publication-reference/document-id/country",
-                  ".//publication-reference/document-id/doc-number",
-                  ".//publication-reference/document-id/kind",
-                  ".//publication-reference/document-id/date",
-                  ".//application-reference/document-id/country",
-                  ".//application-reference/document-id/date",
-                  ".//us-application-series-code",
-                  ".//us-issued-on-continued-prosecution-application",
-                  ".//rule-47-flag",
-                  ".//us-term-extension",
-                  ".//length-of-grant",
-                  ".//invention-title",
-                  ".//number-of-claims",
-                  ".//us-exemplary-claim",
-                  ".//us-botanic/variety",
-                  ".//us-provisional-application/document-id/country",
-                  ".//us-provisional-application/document-id/doc-number",
-                  ".//us-provisional-application/document-id/kind",
-                  ".//us-provisional-application/document-id/date",
-                  ".//related-publication/document-id/country",
-                  ".//related-publication/document-id/doc-number",
-                  ".//related-publication/document-id/kind",
-                  ".//related-publication/document-id/date"
-                 ]
+def get_int_schema():
+    schema = ('%s `%s`.`%s` '
+              '%s'
+              'PARTITIONED BY (proc_date STRING) '
+              'STORED AS PARQUET ') % (header, int_db, table, body)
+    return schema
+
+def get_ext_schema():
+    schema = ('%s `%s`.`%s` '
+              '%s'
+              'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (header, ext_db, table, body)
+    return schema
