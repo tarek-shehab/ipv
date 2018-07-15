@@ -65,12 +65,20 @@ if __name__ == "__main__":
 #    dom = extract_xml_parts("ipg180102.xml")
 #    for lm in dom:
 #        print create_line(lm)
-
+    import logging
+    logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
     import routines.dbs_handlers as dbi
     import routines.tbl_handlers as tables
+    logging.info('This is info')
+    logging.warning('This is warning')
+    logging.debug('This is debug')
+    logging.error('This is error')
+
 #    dbi.init_dbs()
 #    tables.init_tables()
-    tables.load_tables()
+
+    tables.load_tables('180102')
+
 #    process(extract_xml_parts("ipg180102.xml"),"./results/main/data.tsv")
 
 
