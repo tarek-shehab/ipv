@@ -1,14 +1,7 @@
-#!/usr/bin/env python
 #############################################################################
 #
 #############################################################################
-import xml.dom.minidom
 import xml.etree.ElementTree as ET
-import sys
-import time
-from multiprocessing import Pool,cpu_count
-from gxml_splitter import extract_xml_parts
-from impala.dbapi import connect 
 
 #############################################################################
 def create_line(xml_part):
@@ -49,40 +42,4 @@ def create_line(xml_part):
 
     result = u"\t".join(res_list).encode('utf-8').strip()+"\n"
     return result
-
-def process(xml_parts,out_file_name):
-    of = open(out_file_name, "w")
-    start_time = time.time()
-    pool = Pool(processes = cpu_count()-1 if cpu_count() > 1 else 1)
-    results = pool.map(create_line, xml_parts)
-    pool.close()
-    of.write("".join(results))
-    of.close()
-    print time.time() - start_time, "sec. has been spent to processing"
-
-#############################################################################
-if __name__ == "__main__":
-#    dom = extract_xml_parts("ipg180102.xml")
-#    for lm in dom:
-#        print create_line(lm)
-    import logging
-    logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
-    import routines.wpr_handlers as wpr
-
-    wpr.parse('ipg180102.xml')
-
-#    import routines.dbs_handlers as dbi
-#    import routines.tbl_handlers as tables
-#    logging.info('This is info')
-#    logging.warning('This is warning')
-#    logging.debug('This is debug')
-#    logging.error('This is error')
-
-#    dbi.init_dbs()
-#    tables.init_tables()
-
-#    tables.load_tables('180102')
-
-#    process(extract_xml_parts("ipg180102.xml"),"./results/main/data.tsv")
-
 
