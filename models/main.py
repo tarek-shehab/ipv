@@ -1,10 +1,8 @@
+import helpers
 ######################################################################
 #
 ######################################################################
-ext_db = 'ipv_ext'
-int_db = 'ipv_db'
 table  = 'main'
-header = 'CREATE TABLE IF NOT EXISTS'
 body   =   ('(app_id BIGINT,'
             'pub_ref_country STRING,'
             'pub_ref_doc_number STRING,'
@@ -30,15 +28,4 @@ body   =   ('(app_id BIGINT,'
             'rel_pub_kind STRING,'
             'rel_pub_date STRING) ')
 
-def get_int_schema():
-    schema = ('%s `%s`.`%s` '
-              '%s'
-              'PARTITIONED BY (proc_date STRING) '
-              'STORED AS PARQUET ') % (header, int_db, table, body)
-    return schema
-
-def get_ext_schema():
-    schema = ('%s `%s`.`%s` '
-              '%s'
-              'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (header, ext_db, table, body)
-    return schema
+model = helpers.tbl_model(table, body)

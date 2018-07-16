@@ -13,7 +13,7 @@ import subprocess
 from subprocess import PIPE
 
 hdfs_base_dir = '/ipv'
-parsers = ['main', 'applicant', 'inventor', 'assignee', 'd-inventor']
+parsers = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
 modules = {}
 
 for mod in parsers: modules[mod] = importlib.import_module('.' + mod, 'parsers')
@@ -45,7 +45,7 @@ def set_env():
 
 def set_impala_permissions(base_dir):
     try:
-        logging.error('Changing HDFS files permissions')
+        logging.info('Changing HDFS files permissions')
         cmd = ["sudo", "-u", "hdfs", "hdfs", "dfs", "-chown", "-R", "impala:supergroup", base_dir]
         subprocess.Popen(cmd, stdout=PIPE)
         cmd = ["sudo", "-u", "hdfs", "hdfs", "dfs", "-chmod", "-R", "777", base_dir]
@@ -91,7 +91,7 @@ def write_result(proc_date, modul, results):
         of = open(file_name, "w")
         of.write("".join(results))
         of.close()
-        logging.info(('Data for <%s> parser has successfully wrote') % (modul))
+        logging.info(('Data for <%s> parser has successfully written') % (modul))
     except Exception as err:
         logging.error(('Failed when writing results for <%s> parser') % (modul))
         logging.error(err)
@@ -103,7 +103,7 @@ def write_hdfs(hdfs, proc_date, modul, results):
         of.write("".join(results))
         of.close()
 
-        logging.info(('Data for <%s> parser has successfully wrote') % (modul))
+        logging.info(('Data for <%s> parser has successfully written') % (modul))
     except Exception as err:
         logging.error(('Failed when writing results for <%s> parser') % (modul))
         logging.error(err)

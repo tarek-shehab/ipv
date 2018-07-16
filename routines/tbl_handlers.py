@@ -7,9 +7,9 @@ import importlib
 import logging
 import os
 
-#models = ['main', 'applicant', 'inventor', 'assignee', 'd-inventor']
+models = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
 
-models = ['main',]
+#models = ['main',]
 
 modules = {}
 
@@ -20,8 +20,8 @@ def init_tables():
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
         for mod in modules:
-            impala_cur.execute(modules[mod].get_int_schema())
-            impala_cur.execute(modules[mod].get_ext_schema())
+            impala_cur.execute(modules[mod].model.get_int_schema())
+            impala_cur.execute(modules[mod].model.get_ext_schema())
             logging.info(('Table %s has successfully initialized!') % (mod))
         impala_cur.close()
         impala_con.close() 
