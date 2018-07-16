@@ -13,7 +13,8 @@ import subprocess
 from subprocess import PIPE
 
 hdfs_base_dir = '/ipv'
-parsers = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
+parsers = ['classification']
+#parsers = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
 modules = {}
 
 for mod in parsers: modules[mod] = importlib.import_module('.' + mod, 'parsers')

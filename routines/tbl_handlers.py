@@ -2,14 +2,13 @@
 #
 ######################################################################
 from impala.dbapi import connect
-import pyhs2
 import importlib
 import logging
 import os
 
-models = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
+#models = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
 
-#models = ['main',]
+models = ['classification',]
 
 modules = {}
 
@@ -31,13 +30,6 @@ def init_tables():
 
 def load_tables(proc_date):
     try:
-        hive_con =  pyhs2.connect(host='Big-Server6',
-                                  port=10000,
-                                  authMechanism="NOSASL",
-                                  user='root',
-                                  password='test',
-                                  database='default')
-        hive_cur = hive_con.cursor()
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
 
@@ -48,8 +40,6 @@ def load_tables(proc_date):
             insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (proc_date=\'%s\') '
                           'SELECT * FROM `%s`.`%s`') % ('ipv_db', mod, proc_date, 'ipv_ext', mod)
             refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', mod)
-            print load_sql
-#            hive_cur.execute(load_sql)
             impala_cur.execute(refresh)
             impala_cur.execute(load_sql)
             logging.info(('Data has successfully loaded into temporary table: %s!') % (mod))
@@ -58,8 +48,6 @@ def load_tables(proc_date):
 
         impala_cur.close()
         impala_con.close()
-        hive_cur.close()
-        hive_con.close()
     except Exception as err:
         logging.error('Tables loading failed!')
         logging.error(err)

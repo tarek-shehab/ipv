@@ -16,7 +16,7 @@ if __name__ == "__main__":
     logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
     import routines.wpr_handlers as wpr
 
-#    wpr.parse('ipg180102.xml')
+    wpr.parse('ipg180102.xml')
 
 #    import routines.dbs_handlers as dbi
     import routines.tbl_handlers as tables
