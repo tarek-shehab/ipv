@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #############################################################################
 # Split Patent Grant XML file to list of XML
 #############################################################################
@@ -17,7 +16,6 @@ def extract_xml_parts(xml_file):
             res.append(line)
             res.insert(0, marker)
             elm = "".join(res)
-#            create_line(elm)
             xmls.append(elm)
             i+=1
             res = []

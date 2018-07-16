@@ -72,7 +72,7 @@ if __name__ == "__main__":
     wpr.parse('ipg180102.xml')
 
 #    import routines.dbs_handlers as dbi
-#    import routines.tbl_handlers as tables
+    import routines.tbl_handlers as tables
 #    logging.info('This is info')
 #    logging.warning('This is warning')
 #    logging.debug('This is debug')
