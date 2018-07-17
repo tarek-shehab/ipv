@@ -15,6 +15,6 @@ def create_line(xml_part):
 
     app_num = xml.find(".//application-reference/document-id/doc-number").text
 
-    parts = xml.findall(".//classification-national")
+    parts = xml.findall(".//us-bibliographic-data-grant/classification-national")
 
     return helpers.cl_extract(parts, to_extract, app_num)

@@ -13,11 +13,16 @@ import subprocess
 from subprocess import PIPE
 
 hdfs_base_dir = '/ipv'
-parsers = ['classification']
-#parsers = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
-modules = {}
 
-for mod in parsers: modules[mod] = importlib.import_module('.' + mod, 'parsers')
+def init_parsers(f_type):
+    modules = {}
+    parsers = {'ipg': ['classification'],
+               'ad': ['assignments']}
+
+#    parsers ={'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims'],
+#              'ad': ['assignments']}
+    for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers')
+    return modules
 
 def set_env():
     # libhdfs.so path
@@ -61,8 +66,19 @@ def hdfs_connect():
     return pa.hdfs.connect("192.168.250.15", 8020, user='hdfs', driver='libhdfs')
 
 def parse(file_name):
+    if not file_name:
+        logging.error(('Incorrect argument for XML parser') % (file_name))
+        return False
+    short_name = os.path.basename(file_name)
+
+    dig = re.search('\d', short_name)
+    f_type = short_name[:dig.start()] if dig else False
+
+    if f_type not in ['ipg', 'ad']:
+        logging.error(('Incorrect file type for XML parser') % (name))
+        return False
     try:
-        short_name = os.path.basename(file_name)
+        modules = init_parsers(f_type)
         logging.info(('Start processing %s file') % (short_name))
         start = time.time()
         fstart = start

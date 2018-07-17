@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 import helpers
 
 #############################################################################
+
+
 def create_line(xml_part):
     to_extract = ["residence/country", 
                   "nationality/country", 

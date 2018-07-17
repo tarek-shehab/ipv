@@ -1,7 +1,6 @@
 ######################################################################
 #
 ######################################################################
-
 def get_value(arg):
     return arg.text if (arg is not None and arg.text is not None) else "-"
 
@@ -32,6 +31,20 @@ def w_extract(parts, to_extract, app_num, add_tag):
         return result
 
     else: return False
+"""
+def get_class(arg):
+    if arg[0] == ' ':
+       return [arg.strip()[0],arg.strip()[1:]]
+    else: return [arg[:3].replace(' ','0'), arg[3:].replace(' ','0')]
+"""
+def get_class(arg):
+
+    tmp = arg.replace(' ','0')
+
+    sbc = tmp[3:] if len(tmp[3:]) <= 3 else tmp[3:6] + '.' + tmp[6:] + '0'*(3-len(tmp[6:]))
+
+    fpt = tmp[:3]
+    return [fpt if fpt[0] != '0' else fpt[1:], sbc]
 
 def cl_extract(parts, to_extract, app_num):
 
@@ -46,8 +59,7 @@ def cl_extract(parts, to_extract, app_num):
                 elif tag == "main-classification":
                     value = get_value(ct)
                     if value != '-':
-                        res_list.extend([value[:value.rfind(' ')].strip(),
-                                        value[value.rfind(' '):].strip()])
+                        res_list.extend(get_class(value))
                     else: res_list.extend(['-', '-'])
                 elif tag == "further-classification":
                     temp_list = res_list[:]
@@ -55,8 +67,7 @@ def cl_extract(parts, to_extract, app_num):
                     for c in ct:
                         value = get_value(c)
                         if value != '-':
-                            res_list.extend([value[:value.rfind(' ')].strip(),
-                                            value[value.rfind(' '):].strip()])
+                            res_list.extend(get_class(value))
                         else: res_list.extend(['-', '-'])
                         result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
                         res_list = temp_list[:]

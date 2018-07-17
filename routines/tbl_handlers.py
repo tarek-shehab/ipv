@@ -6,19 +6,22 @@ import importlib
 import logging
 import os
 
-#models = ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims']
+models = {'ipg': ['classification'],
+          'ad': ['assignments']}
 
-models = ['classification',]
+#models = {'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims'],
+#           'ipa': ['application']}
 
-modules = {}
-
-for mod in models: modules[mod] = importlib.import_module('.' + mod, 'models')
+def init_models():
+    modules = {}
+    for mod in models['ipg'] + models['ipa']: modules[mod] = importlib.import_module('.' + mod, 'models')
+    return modules
 
 def init_tables():
     try:
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
-        for mod in modules:
+        for mod in init_models():
             impala_cur.execute(modules[mod].model.get_int_schema())
             impala_cur.execute(modules[mod].model.get_ext_schema())
             logging.info(('Table %s has successfully initialized!') % (mod))
@@ -28,12 +31,15 @@ def init_tables():
         logging.error('Tables initialization failed!')
         logging.error(err)
 
-def load_tables(proc_date):
+def load_tables(proc_date, f_type='ipg'):
+    if not proc_date and f_type not in ['ipg','ipa']:
+       logging.error(('Incorrect argument for tables loader!') % (name))
+       return False
     try:
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
 
-        for mod in modules:
+        for mod in models[f_type]:
 #            target_path = os.getcwd() + '/results/' + mod + '/data' + proc_date + '.tsv'
             target_path = '/ipv/results/' + mod + '/data' + proc_date + '.tsv'
             load_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 'ipv_ext', mod)
