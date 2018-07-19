@@ -16,11 +16,11 @@ hdfs_base_dir = '/ipv'
 
 def init_parsers(f_type):
     modules = {}
-    parsers = {'ipg': ['classification'],
-               'ad': ['assignments']}
+#    parsers = {'ipg': ['classification'],
+#               'ad': ['assignments']}
 
-#    parsers ={'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims'],
-#              'ad': ['assignments']}
+    parsers ={'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims'],
+              'ad': ['assignments', 'a_assignee', 'a_assignor']}
     for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers')
     return modules
 
@@ -60,6 +60,21 @@ def set_impala_permissions(base_dir):
         logging.error('Can\'t change HDFS files permissions!')
         logging.error(err)
 
+def parse_file_name(file_name):
+    result = {}
+    dig = re.search('\d', file_name)
+    result['f_type'] =  file_name[:dig.start()] if dig else False
+
+    if result['f_type'] not in ['ipg', 'ad']:
+        raise Exception(('Incorrect file type for XML parser <%s>') % (file_name))
+
+    if result['f_type'] == 'ipg':
+        result['proc_date'] =  '20' + re.search("([0-9]{6})", file_name).group(0)
+    else: result['proc_date'] =  re.search("([0-9]{8})", file_name).group(0)
+    if len(result['proc_date']) != 8:
+        raise Exception(('Incorrect date extracted from <%s>') % (file_name))
+
+    return result
 
 def hdfs_connect():
     set_env()
@@ -70,15 +85,11 @@ def parse(file_name):
         logging.error(('Incorrect argument for XML parser') % (file_name))
         return False
     short_name = os.path.basename(file_name)
+    f_prop = parse_file_name(short_name)
 
-    dig = re.search('\d', short_name)
-    f_type = short_name[:dig.start()] if dig else False
-
-    if f_type not in ['ipg', 'ad']:
-        logging.error(('Incorrect file type for XML parser') % (name))
-        return False
     try:
-        modules = init_parsers(f_type)
+#    if True:
+        modules = init_parsers(f_prop['f_type'])
         logging.info(('Start processing %s file') % (short_name))
         start = time.time()
         fstart = start
@@ -87,20 +98,27 @@ def parse(file_name):
         logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
         for mod in modules:
             start = time.time()
+#            results = []
+#            for x in xml:
+#                print x
+#                results.append(modules[mod].create_line(x))
             pool = Pool(processes = cpu_count()-1 if cpu_count() > 1 else 1)
             results = pool.map(modules[mod].create_line, xml)
             pool.close()
             results = [res for res in results if res]
             logging.info(('Parser <%s> has done in %s sec.') % (mod, str(round(time.time()-start, 2))))
-            proc_date =  re.search("([0-9]{6})", short_name).group(0)
+
+            proc_date =  f_prop['proc_date']
+
             write_hdfs(hdfs, proc_date, mod, results)
         hdfs.close()
         set_impala_permissions(hdfs_base_dir)
         logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
+        return f_prop
     except Exception as err:
         logging.error(('XML file %s processing failed!') % (short_name))
         logging.error(err)
-
+        return False
 
 def write_result(proc_date, modul, results):
     try:

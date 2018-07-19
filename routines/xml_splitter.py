@@ -16,8 +16,8 @@ def extract_xml_parts(xml_file):
     if f_type == 'ipg':
         open_tag = "<us-patent-grant"
         close_tag = "</us-patent-grant>"
-    elif f_type == 'ipa':
-        open_tag = "<patent-assignment"
+    elif f_type == 'ad':
+        open_tag = "<patent-assignment>"
         close_tag = "</patent-assignment>"
     else:
         logging.error(('Can\'t split file <%s>') % (name))
@@ -29,19 +29,21 @@ def extract_xml_parts(xml_file):
     xmls = []
     i = 0
     for line in in_file:
-        if line.startswith(open_tag):
+        if line.lstrip().startswith(open_tag):
             if len(res) == 0:
-                res.append(line)
+                res.append(line.lstrip())
                 continue
-        if line.startswith(close_tag):
-            res.append(line)
+        if line.lstrip().startswith(close_tag):
+            res.append(line.lstrip())
             res.insert(0, marker)
             elm = "".join(res)
+#            print elm
+#            print "-----------------------"
             xmls.append(elm)
             i+=1
             res = []
             continue
-        if len(res) != 0: res.append(line)
+        if len(res) != 0: res.append(line.lstrip())
 
 #    print "Total parts:", i
 

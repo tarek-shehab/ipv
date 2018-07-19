@@ -16,6 +16,7 @@ if __name__ == "__main__":
     logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
     import routines.wpr_handlers as wpr
 
+    wpr.parse('ad20180101.xml')
 #    wpr.parse('ipg180102.xml')
 
 #    import routines.dbs_handlers as dbi
@@ -24,7 +25,7 @@ if __name__ == "__main__":
 #    dbi.init_dbs()
 #    tables.init_tables()
 
-    tables.load_tables('180102')
+#    tables.load_tables('201801','ad')
 
 #    process(extract_xml_parts("ipg180102.xml"),"./results/main/data.tsv")
 

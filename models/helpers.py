@@ -13,7 +13,7 @@ class tbl_model():
     def get_int_schema(self):
         schema = ('%s `%s`.`%s` '
                   '%s'
-                  'PARTITIONED BY (proc_date STRING) '
+                  'PARTITIONED BY (year STRING, proc_date STRING) '
                   'STORED AS PARQUET ') % (self.header, self.int_db, self.table, self.body)
         return schema
 

@@ -17,10 +17,8 @@ def create_line(xml_part):
 #                  "addressbook/role"
                  ]
 
-    xml = ET.fromstring(xml_part)
+    app_num_tag = ".//application-reference/document-id/doc-number"
 
-    app_num = xml.find(".//application-reference/document-id/doc-number").text
+    parts_tag = ".//us-applicants/us-applicant"
 
-    parts = xml.findall(".//us-applicants/us-applicant")
-
-    return helpers.extract(parts, to_extract, app_num)
+    return helpers.extract(xml_part, to_extract, parts_tag, app_num_tag)

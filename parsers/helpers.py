@@ -1,42 +1,67 @@
+import xml.etree.ElementTree as ET
+import logging
+
 ######################################################################
 #
 ######################################################################
 def get_value(arg):
     return arg.text if (arg is not None and arg.text is not None) else "-"
 
-def extract(parts, to_extract, app_num):
+def get_parts(xml_part, parts_tag, app_num_tag):
 
-    if len(parts) != 0:
-        result = ''
-        for elm in parts:
-            res_list = [app_num]
-            for tag in to_extract:
-                ct = elm.find(tag)
-                res_list.append(get_value(ct))
-            result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
-        return result
+    xml = ET.fromstring(xml_part)
 
-    else: return False
+    app_num = xml.find(app_num_tag).text
 
-def w_extract(parts, to_extract, app_num, add_tag):
+    parts = xml.findall(parts_tag)
 
-    if len(parts) != 0:
-        result = ''
-        for elm in parts:
-            res_list = [app_num, elm.get(add_tag)]
-            for tag in to_extract:
-                ct = elm.find(tag)
-                res_list.append(get_value(ct))
-            result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
-        return result
+    return [parts, app_num]
 
-    else: return False
-"""
-def get_class(arg):
-    if arg[0] == ' ':
-       return [arg.strip()[0],arg.strip()[1:]]
-    else: return [arg[:3].replace(' ','0'), arg[3:].replace(' ','0')]
-"""
+
+def extract(xml_part, to_extract, parts_tag, app_num_tag):
+    try:
+        args = get_parts(xml_part, parts_tag, app_num_tag)
+        parts = args[0]
+        app_num = args[1]
+
+        if len(parts) != 0:
+            result = ''
+            for elm in parts:
+                res_list = [app_num]
+                for tag in to_extract:
+                    ct = elm.find(tag)
+                    res_list.append(get_value(ct))
+                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+            return result
+
+        else: return False
+    except Exception as err:
+        logging.error('General parser error!')
+        logging.error(err)
+        return False
+
+def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag):
+    try:
+        args = get_parts(xml_part, parts_tag, app_num_tag)
+        parts = args[0]
+        app_num = args[1]
+
+        if len(parts) != 0:
+            result = ''
+            for elm in parts:
+                res_list = [app_num, elm.get(add_tag)]
+                for tag in to_extract:
+                    ct = elm.find(tag)
+                    res_list.append(get_value(ct))
+                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+            return result
+
+        else: return False
+    except Exception as err:
+        logging.error('W-parser error!')
+        logging.error(err)
+        return False
+
 def get_class(arg):
 
     tmp = arg.replace(' ','0')
@@ -46,31 +71,65 @@ def get_class(arg):
     fpt = tmp[:3]
     return [fpt if fpt[0] != '0' else fpt[1:], sbc]
 
-def cl_extract(parts, to_extract, app_num):
+def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
+    try:
+        args = get_parts(xml_part, parts_tag, app_num_tag)
+        parts = args[0]
+        app_num = args[1]
 
-    if len(parts) != 0:
-        result = ''
-        for elm in parts:
-            res_list = [app_num]
-            for tag in to_extract:
-                ct = elm.find(tag)
-                if tag == "country":
-                    res_list.append(get_value(ct))
-                elif tag == "main-classification":
-                    value = get_value(ct)
-                    if value != '-':
-                        res_list.extend(get_class(value))
-                    else: res_list.extend(['-', '-'])
-                elif tag == "further-classification":
-                    temp_list = res_list[:]
-                    ct = elm.findall(tag)
-                    for c in ct:
-                        value = get_value(c)
+        if len(parts) != 0:
+            result = ''
+            for elm in parts:
+                res_list = [app_num]
+                for tag in to_extract:
+                    ct = elm.find(tag)
+                    if tag == "country":
+                        res_list.append(get_value(ct))
+                    elif tag == "main-classification":
+                        value = get_value(ct)
                         if value != '-':
                             res_list.extend(get_class(value))
                         else: res_list.extend(['-', '-'])
-                        result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
-                        res_list = temp_list[:]
-        return result
+                    elif tag == "further-classification":
+                        temp_list = res_list[:]
+                        ct = elm.findall(tag)
+                        for c in ct:
+                            value = get_value(c)
+                            if value != '-':
+                                res_list.extend(get_class(value))
+                            else: res_list.extend(['-', '-'])
+                            result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+                            res_list = temp_list[:]
+            return result
 
-    else: return False
+        else: return False
+    except Exception as err:
+        logging.error('CL-parser error!')
+        logging.error(err)
+        return False
+
+def as_extract(xml_part, to_extract, parts_tag, sub_tags):
+    try:
+        xml = ET.fromstring(xml_part)
+        parts = xml.findall(parts_tag)
+        res_list = []
+        if len(parts) != 0:
+            result = ''
+            for tag in to_extract:
+                ct = xml.find(tag)
+                res_list.append(get_value(ct))
+            temp_list = res_list[:]
+            for elm in parts:
+                for tag in sub_tags:
+                    ct = elm.find(tag)
+                    res_list.append(get_value(ct))
+
+                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+                res_list = temp_list[:]
+            return result
+
+        else: return False
+    except Exception as err:
+        logging.error('AS-parser error!')
+        logging.error(err)
+        return False
