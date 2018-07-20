@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 sudo apt-get install python-pip
 sudo apt-get install libsasl2-dev
