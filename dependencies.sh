@@ -8,5 +8,6 @@ pip install impyla
 pip install pyarrow
 pip install beautifulsoup4
 pip install lxml
+pip install requests
 pip install wget
 

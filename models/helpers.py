@@ -10,17 +10,27 @@ class tbl_model():
         self.header = 'CREATE TABLE IF NOT EXISTS'
         self.body   = body
 
-    def get_int_schema(self):
-        schema = ('%s `%s`.`%s` '
-                  '%s'
-                  'PARTITIONED BY (year STRING, proc_date STRING) '
-                  'STORED AS PARQUET ') % (self.header, self.int_db, self.table, self.body)
+    def get_int_schema(self,ftype=False):
+        if ftype == 'att':
+            schema = ('%s `%s`.`%s` '
+                      '%s '
+                      'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (self.header, self.int_db, self.table, self.body)
+        else:
+            schema = ('%s `%s`.`%s` '
+                      '%s '
+                      'PARTITIONED BY (year STRING, proc_date STRING) '
+                      'STORED AS PARQUET ') % (self.header, self.int_db, self.table, self.body)
         return schema
 
-    def get_ext_schema(self):
-        schema = ('%s `%s`.`%s` '
-                  '%s'
-                  'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (self.header, self.ext_db, self.table, self.body)
+    def get_ext_schema(self,ftype=False):
+        if ftype == 'att':
+            schema = ('%s `%s`.`%s` '
+                      '%s '
+                      'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (self.header, self.int_db, self.table, self.body)
+        else:
+            schema = ('%s `%s`.`%s` '
+                      '%s '
+                      'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (self.header, self.ext_db, self.table, self.body)
         return schema
 
 

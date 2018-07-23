@@ -30,25 +30,25 @@ def get_tasks():
             }
     return tasks.get(socket.gethostbyname(socket.gethostname()))
 
-def get_links(year):
+def get_links():
     logging.info('Creating links list')
     try:
         res = []
-        url =('https://bulkdata.uspto.gov/data/patent/grant/redbook/fulltext/%s/') % (year)
+        url ='https://bulkdata.uspto.gov/data/patent/assignment/'
 
         USERAGENT = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
         HEADERS = {'User-Agent': USERAGENT}
 
         page = requests.get(url, headers=HEADERS)
 
-        durl_prefix = 'https://bulkdata.uspto.gov/data/patent/grant/redbook/fulltext/20'
+        durl_prefix = 'https://bulkdata.uspto.gov/data/patent/assignment/'
         content = html.fromstring(page.content)
 
         file_list =  content.xpath('.//tr/td/a/text()')
 
         for fl in file_list:
             if fl.endswith('.zip'):
-                res.append(durl_prefix + fl[3:5] + '/' + fl)
+                res.append(durl_prefix + fl)
 
         return res if len(res) > 0 else False
     except Exception as err:
@@ -61,22 +61,17 @@ def get_links(year):
 if __name__ == "__main__":
 
     logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
-
-    target_dir = './source/ipg/'
-    tasks = get_tasks()
-    if tasks:
-        for task in tasks:
-            links = get_links(task)
-            if links:
-                for link in links:
-                    print link
-#                    zpf = loader.f_get(link, target_dir)
-#                    loader.f_unzip(zpf, target_dir)
-            else:
-                logging.error('No links were extracted!')
+    stime = time.time()
+    target_dir = './source/ad/'
+    links = get_links()
+    if links:
+        for link in links:
+#            print link
+            zpf = loader.f_get(link, target_dir)
+            loader.f_unzip(zpf, target_dir)
     else:
-        logging.error('No tasks were extracted!')
+        logging.error('No links were extracted!')
 
-    logging.info('Script finished!')
+    logging.info(('Script finished in %s sec.!') % (str(round(time.time()-stime,2))))
 
 

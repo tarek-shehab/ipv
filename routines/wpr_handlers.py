@@ -19,7 +19,7 @@ def init_parsers(f_type):
 #    parsers = {'ipg': ['classification'],
 #               'ad': ['assignments']}
 
-    parsers ={'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims'],
+    parsers ={'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims', 'classification'],
               'ad': ['assignments', 'a_assignee', 'a_assignor']}
     for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers')
     return modules
@@ -117,6 +117,43 @@ def parse(file_name):
         return f_prop
     except Exception as err:
         logging.error(('XML file %s processing failed!') % (short_name))
+        logging.error(err)
+        return False
+
+def file_to_hdfs(file_name):
+    if not file_name:
+        logging.error(('Incorrect file name') % (file_name))
+        return False
+    short_name = os.path.basename(file_name)
+
+    try:
+        start = time.time()
+        fstart = start
+        with open(file_name, 'rb') as in_file:
+#            content = in_file.read()
+            lines = in_file.readlines()
+        content = []
+        for line in lines:
+            content.append(line.replace('","','\t').replace('"',''))
+
+        hdfs = hdfs_connect()
+
+        hdfs_name = hdfs_base_dir + '/results/attorney/' + short_name
+        print hdfs_name
+        print len(content)
+
+        of = hdfs.open(hdfs_name, "wb")
+#        of.write(content)
+        of.write("".join(content))
+        of.close()
+
+        logging.info(('File <%s> hase successfully copied to HDFS') % (short_name))
+
+        hdfs.close()
+        set_impala_permissions(hdfs_base_dir)
+        return hdfs_name
+    except Exception as err:
+        logging.error(('Failed to copy <%s> to HDFS!') % (short_name))
         logging.error(err)
         return False
 

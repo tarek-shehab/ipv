@@ -2,6 +2,7 @@
 #
 ######################################################################
 from impala.dbapi import connect 
+import logging
 
 def init_dbs():
     create_command = 'CREATE DATABASE IF NOT EXISTS '
@@ -12,6 +13,9 @@ def init_dbs():
         for db in dbs: impala_cur.execute(create_command + db)
         impala_cur.close()
         impala_con.close() 
-        print "DB successfully initialized!"
+        logging.info("DB successfully initialized!")
+        return True
     except Exception as err:
-        print "DB Init failed!",err
+        logging.error("DB Init failed!")
+        logging.error("DB Init failed!")
+        return False
