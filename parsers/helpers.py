@@ -87,11 +87,8 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
         args = get_parts(xml_part, parts_tag, app_num_tag)
         parts = args[0]
         app_num = args[1]
-#        print len(parts)
-        print parts
         if len(parts) != 0:
             result = ''
-#            print len(parts)
             for elm in parts:
                 res_list = [app_num]
                 for tag in to_extract:
@@ -106,7 +103,6 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
                     elif tag == "further-classification":
                         temp_list = res_list[:]
                         ct = elm.findall(tag)
-                        if len(ct) != 0: print "furth", ct, len(ct)
                         if len(ct) != 0:
                             for c in ct:
                                 value = get_value(c)

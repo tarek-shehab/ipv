@@ -11,25 +11,14 @@ import time
 import pyarrow as pa
 import subprocess
 from subprocess import PIPE
-
-hdfs_base_dir = '/ipv'
+cfg = importlib.import_module('.cfg', 'config')
 
 def init_parsers(f_type):
     modules = {}
-#    parsers = {'ipg': ['classification'],
-#               'ad': ['assignments']}
 
-    parsers ={'ipg': [
-#                       'main',
-#                      'applicant',
-#                      'inventor',
-#                      'assignee',
-#                      'd_inventor',
-#                      'claims',
-                      'classification',
-                     ],
-              'ad': ['assignments', 'a_assignee', 'a_assignor']}
-    for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers')
+    parsers = cfg.active_parsers
+
+    for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers.'+f_type)
     return modules
 
 def set_env():
@@ -120,7 +109,7 @@ def parse(file_name):
 
             write_hdfs(hdfs, proc_date, mod, results)
         hdfs.close()
-        set_impala_permissions(hdfs_base_dir)
+        set_impala_permissions(cfg.hdfs_base_dir)
         logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
         return f_prop
     except Exception as err:
@@ -146,7 +135,7 @@ def file_to_hdfs(file_name):
 
         hdfs = hdfs_connect()
 
-        hdfs_name = hdfs_base_dir + '/results/attorney/' + short_name
+        hdfs_name = cfg.hdfs_base_dir + '/results/attorney/' + short_name
         print hdfs_name
         print len(content)
 
@@ -158,7 +147,7 @@ def file_to_hdfs(file_name):
         logging.info(('File <%s> hase successfully copied to HDFS') % (short_name))
 
         hdfs.close()
-        set_impala_permissions(hdfs_base_dir)
+        set_impala_permissions(cfg.hdfs_base_dir)
         return hdfs_name
     except Exception as err:
         logging.error(('Failed to copy <%s> to HDFS!') % (short_name))
@@ -178,7 +167,7 @@ def write_result(proc_date, modul, results):
 
 def write_hdfs(hdfs, proc_date, modul, results):
     try:
-        file_name = hdfs_base_dir + '/results/' + modul + '/data' + proc_date +'.tsv'
+        file_name = cfg.hdfs_base_dir + '/results/' + modul + '/data' + proc_date +'.tsv'
         of = hdfs.open(file_name, "wb")
         of.write("".join(results))
         of.close()

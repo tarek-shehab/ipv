@@ -1,8 +1,10 @@
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'models')
+
 ######################################################################
 #
 ######################################################################
-table  = 'main'
+table  = 'grant_main'
 body   =   ('(app_id BIGINT,'
             'pub_ref_country STRING,'
             'pub_ref_doc_number STRING,'
@@ -19,13 +21,13 @@ body   =   ('(app_id BIGINT,'
             'nbr_of_claims BIGINT,'
             'us_exempl_claim STRING,'
             'us_botan_var STRING,'
-            'us_prov_app_country STRING,'
-            'us_prov_app_doc_number STRING,'
-            'us_prov_app_kind STRING,'
-            'us_prov_app_date STRING,'
-            'rel_pub_country STRING,'
-            'rel_pub_doc_number STRING,'
-            'rel_pub_kind STRING,'
-            'rel_pub_date STRING) ')
+            'exam_dept STRING,'
+            'exam_first_name STRING,'
+            'exam_last_name STRING,'
+            'prfd_date STRING,'
+            'prfd_country STRING,'
+            'prfd_371c124 STRING,'
+            'prpd_date STRING,'
+            'rrpd_country STRING) ')
 
 model = helpers.tbl_model(table, body)

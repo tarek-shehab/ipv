@@ -18,7 +18,7 @@ class tbl_model():
         else:
             schema = ('%s `%s`.`%s` '
                       '%s '
-                      'PARTITIONED BY (year STRING, proc_date STRING) '
+                      'PARTITIONED BY (year STRING, month STRING, day STRING) '
                       'STORED AS PARQUET ') % (self.header, self.int_db, self.table, self.body)
         return schema
 
@@ -32,6 +32,9 @@ class tbl_model():
                       '%s '
                       'ROW FORMAT DELIMITED FIELDS TERMINATED BY \'\\t\'') % (self.header, self.ext_db, self.table, self.body)
         return schema
+
+    def get_table_name(self):
+        return self.table
 
 
 

@@ -17,15 +17,15 @@ if __name__ == "__main__":
     import routines.wpr_handlers as wpr
 
 #    wpr.parse('ad20180101.xml')
-    wpr.parse('ipg180102.xml')
+#    wpr.parse('ipg180102.xml')
 
 #    import routines.dbs_handlers as dbi
     import routines.tbl_handlers as tables
 
 #    dbi.init_dbs()
-#    tables.init_tables()
-
-#    tables.load_tables('201801','ad')
+    res = wpr.parse('ipg180102.xml')
+    print res
+    tables.load_tables(res)
 
 #    process(extract_xml_parts("ipg180102.xml"),"./results/main/data.tsv")
 

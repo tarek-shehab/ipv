@@ -6,26 +6,20 @@ import importlib
 import logging
 import os
 
-models = {'ipg': ['classification'],
-          'ad': ['assignments', 'a_assignee'],
-          'att': ['attorney']}
+models = importlib.import_module('.cfg', 'config').active_models
 
-#models = {'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims'],
-#           'ipa': ['application']}
-
-def init_models(mtype='all'):
-    modules = {}
+def init_models(mtype):
     tlist = []
-    if mtype == 'all':
-        for tp in models: tlist.extend(models[t])
-    else: tlist = models[mtype]
+    modules = {}
+    tlist = models[mtype]
     if len(tlist) > 0:
-        for mod in tlist: modules[mod] = importlib.import_module('.' + mod, 'models')
+        for mod in tlist: modules[mod] = importlib.import_module('.' + mod, 'models.' + mtype)
         return modules
     else: raise Exception('Tables type is incorrect!')
 
-def init_tables(ttype='all'):
-    try:
+def init_tables(ttype):
+    if True:
+#    try:
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
         modules = init_models(ttype)
@@ -36,15 +30,18 @@ def init_tables(ttype='all'):
         impala_cur.close()
         impala_con.close() 
         return True
-    except Exception as err:
-        logging.error('Tables initialization failed!')
-        logging.error(err)
-        return False
+#    except Exception as err:
+#        logging.error('Tables initialization failed!')
+#        logging.error(err)
+#        return False
 
 def load_tables(properties):
     if not properties and properties['f_type'] not in ['ipg','ad']:
        logging.error(('Incorrect argument for tables loader!') % (name))
        return False
+
+    modules = init_models(properties['f_type'])
+    init_tables(properties['f_type'])
     if True:
 #    try:
         impala_con = connect(host='localhost')
@@ -53,21 +50,28 @@ def load_tables(properties):
         for mod in models[properties['f_type']]:
             if properties['f_type'] == 'att':
                 target_path = '/ipv/results/' + mod + '/WebRoster.txt'
-                insert_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 'ipv_db', mod)
+                insert_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 
+                                                                                           'ipv_db',
+                                                                                           modules[mod].model.get_table_name())
             else:
 #                target_path = os.getcwd() + '/results/' + mod + '/data' + proc_date + '.tsv'
                 target_path = '/ipv/results/' + mod + '/data' + properties['proc_date'] + '.tsv'
-                load_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 'ipv_ext', mod)
-                insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (year=\'%s\', proc_date=\'%s\') '
-                              'SELECT * FROM `%s`.`%s`') % ('ipv_db', mod, properties['proc_date'][:4], 
-                                                            properties['proc_date'][4:], 'ipv_ext', mod)
-                refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', mod)
+                load_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 
+                                                                                         'ipv_ext',
+                                                                                         modules[mod].model.get_table_name())
+                insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (year=\'%s\', month=\'%s\', day=\'%s\') '
+                              'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(), properties['proc_date'][:4],
+                                                            properties['proc_date'][4:6],
+                                                            properties['proc_date'][6:],
+                                                            'ipv_ext',
+                                                            modules[mod].model.get_table_name())
+                refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', modules[mod].model.get_table_name())
                 impala_cur.execute(refresh)
                 impala_cur.execute(load_sql)
-                logging.info(('Data has successfully loaded into temporary table: %s!') % (mod))
+                logging.info(('Data has successfully loaded into temporary table: %s!') % (modules[mod].model.get_table_name()))
             print insert_sql
             impala_cur.execute(insert_sql)
-            logging.info(('Data has successfully loaded into HDFS table: %s!') % (mod))
+            logging.info(('Data has successfully loaded into HDFS table: %s!') % (modules[mod].model.get_table_name()))
         impala_cur.close()
         impala_con.close()
         return True
