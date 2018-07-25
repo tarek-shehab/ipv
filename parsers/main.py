@@ -2,7 +2,7 @@
 #
 #############################################################################
 import xml.etree.ElementTree as ET
-
+import helpers
 #############################################################################
 def create_line(xml_part):
 
@@ -38,7 +38,7 @@ def create_line(xml_part):
 
     for tag in to_extract:
         ct = xml.find(tag)
-        res_list.append(ct.text if (ct is not None and ct.text is not None) else "-")
+        res_list.append(helpers.get_value(ct))
 
     result = u"\t".join(res_list).encode('utf-8').strip()+"\n"
     return result

@@ -19,7 +19,15 @@ def init_parsers(f_type):
 #    parsers = {'ipg': ['classification'],
 #               'ad': ['assignments']}
 
-    parsers ={'ipg': ['main', 'applicant', 'inventor', 'assignee', 'd_inventor', 'claims', 'classification'],
+    parsers ={'ipg': [
+#                       'main',
+#                      'applicant',
+#                      'inventor',
+#                      'assignee',
+#                      'd_inventor',
+#                      'claims',
+                      'classification',
+                     ],
               'ad': ['assignments', 'a_assignee', 'a_assignor']}
     for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers')
     return modules

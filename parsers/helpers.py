@@ -4,8 +4,20 @@ import logging
 ######################################################################
 #
 ######################################################################
+#def get_value(arg):
+#    return arg.text if (arg is not None and arg.text is not None) else "-"
+
 def get_value(arg):
-    return arg.text if (arg is not None and arg.text is not None) else "-"
+    if arg is not None and len(arg) > 0:
+        res = []
+        for elm in arg:
+            head = elm.text if (elm is not None and elm.text is not None) else "-"
+            tail = elm.tail if (elm is not None and elm.tail is not None) else "-"
+            res.extend([head,tail])
+        return ' '.join(res)
+    else: return arg.text if (arg is not None and arg.text is not None) else "-"
+
+
 
 def get_parts(xml_part, parts_tag, app_num_tag):
 
@@ -23,7 +35,6 @@ def extract(xml_part, to_extract, parts_tag, app_num_tag):
         args = get_parts(xml_part, parts_tag, app_num_tag)
         parts = args[0]
         app_num = args[1]
-
         if len(parts) != 0:
             result = ''
             for elm in parts:
@@ -76,9 +87,11 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
         args = get_parts(xml_part, parts_tag, app_num_tag)
         parts = args[0]
         app_num = args[1]
-
+#        print len(parts)
+        print parts
         if len(parts) != 0:
             result = ''
+#            print len(parts)
             for elm in parts:
                 res_list = [app_num]
                 for tag in to_extract:
@@ -93,13 +106,19 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
                     elif tag == "further-classification":
                         temp_list = res_list[:]
                         ct = elm.findall(tag)
-                        for c in ct:
-                            value = get_value(c)
-                            if value != '-':
-                                res_list.extend(get_class(value))
-                            else: res_list.extend(['-', '-'])
-                            result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
-                            res_list = temp_list[:]
+                        if len(ct) != 0: print "furth", ct, len(ct)
+                        if len(ct) != 0:
+                            for c in ct:
+                                value = get_value(c)
+                                if value != '-':
+                                    res_list.extend(get_class(value))
+                                else: res_list.extend(['-', '-'])
+                                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+                                res_list = temp_list[:]
+
+                        else:
+                             res_list.extend(['-', '-'])
+                             result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
             return result
 
         else: return False
