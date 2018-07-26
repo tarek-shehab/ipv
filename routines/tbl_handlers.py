@@ -50,25 +50,28 @@ def load_tables(properties):
         for mod in models[properties['f_type']]:
             if properties['f_type'] == 'att':
                 target_path = '/ipv/results/' + mod + '/WebRoster.txt'
-                insert_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 
-                                                                                           'ipv_db',
-                                                                                           modules[mod].model.get_table_name())
+                insert_sql = ('INSERT INTO TABLE `%s`.`%s` '
+                              'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(),
+                                                            'ipv_ext', modules[mod].model.get_table_name())
             else:
-#                target_path = os.getcwd() + '/results/' + mod + '/data' + proc_date + '.tsv'
                 target_path = '/ipv/results/' + mod + '/data' + properties['proc_date'] + '.tsv'
-                load_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 
-                                                                                         'ipv_ext',
-                                                                                         modules[mod].model.get_table_name())
                 insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (year=\'%s\', month=\'%s\', day=\'%s\') '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(), properties['proc_date'][:4],
                                                             properties['proc_date'][4:6],
                                                             properties['proc_date'][6:],
                                                             'ipv_ext',
                                                             modules[mod].model.get_table_name())
-                refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', modules[mod].model.get_table_name())
-                impala_cur.execute(refresh)
-                impala_cur.execute(load_sql)
-                logging.info(('Data has successfully loaded into temporary table: %s!') % (modules[mod].model.get_table_name()))
+
+            load_sql = ('LOAD DATA INPATH \'%s\' OVERWRITE INTO TABLE `%s`.`%s`') % (target_path, 
+                                                                                     'ipv_ext',
+                                                                                     modules[mod].model.get_table_name())
+
+#            refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', modules[mod].model.get_table_name())
+#            impala_cur.execute(refresh)
+
+            print load_sql
+            impala_cur.execute(load_sql)
+            logging.info(('Data has successfully loaded into temporary table: %s!') % (modules[mod].model.get_table_name()))
             print insert_sql
             impala_cur.execute(insert_sql)
             logging.info(('Data has successfully loaded into HDFS table: %s!') % (modules[mod].model.get_table_name()))

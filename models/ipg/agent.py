@@ -13,5 +13,5 @@ body   =   ('(`app_id` BIGINT,'
              '`org_name` STRING,'
              '`country` STRING ) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body,None])
 

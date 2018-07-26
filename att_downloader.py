@@ -13,7 +13,6 @@ import routines.ldr_handlers as loader
 import routines.wpr_handlers as copier
 
 
-
 #############################################################################
 if __name__ == "__main__":
 

@@ -14,7 +14,7 @@ active_models = {'ipg': [
                           'related',
                         ],
 #                 'ad': ['assignments', 'a_assignee'],
-#                 'att': ['attorney']
+                 'att': ['attorney']
                 }
 
 active_parsers = {'ipg': [

@@ -11,6 +11,9 @@ import time
 import pyarrow as pa
 import subprocess
 from subprocess import PIPE
+import hashlib
+from datetime import datetime
+
 cfg = importlib.import_module('.cfg', 'config')
 
 def init_parsers(f_type):
@@ -95,10 +98,6 @@ def parse(file_name):
         logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
         for mod in modules:
             start = time.time()
-#            results = []
-#            for x in xml:
-#                print x
-#                results.append(modules[mod].create_line(x))
             pool = Pool(processes = cpu_count()-1 if cpu_count() > 1 else 1)
             results = pool.map(modules[mod].create_line, xml)
             pool.close()
@@ -122,25 +121,29 @@ def file_to_hdfs(file_name):
         logging.error(('Incorrect file name') % (file_name))
         return False
     short_name = os.path.basename(file_name)
-
+    updated = str(datetime.now())[:10]
     try:
         start = time.time()
         fstart = start
         with open(file_name, 'rb') as in_file:
-#            content = in_file.read()
             lines = in_file.readlines()
         content = []
+
         for line in lines:
-            content.append(line.replace('","','\t').replace('"',''))
+            elm_list = line.strip().split('","')
+            if len(elm_list) > 0:
+                elm_list[0] = elm_list[0][1:]
+                elm_list[-1] = elm_list[-1][:-1]+'\n'
+                pk = hashlib.md5(''.join(elm_list[0:4])).hexdigest()
+                elm_list.insert(0,updated)
+                elm_list.insert(0,pk)
+                content.append('\t'.join(elm_list))
 
         hdfs = hdfs_connect()
 
         hdfs_name = cfg.hdfs_base_dir + '/results/attorney/' + short_name
-        print hdfs_name
-        print len(content)
 
         of = hdfs.open(hdfs_name, "wb")
-#        of.write(content)
         of.write("".join(content))
         of.close()
 

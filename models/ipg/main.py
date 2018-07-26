@@ -30,4 +30,4 @@ body   =   ('(app_id BIGINT,'
             'prpd_date STRING,'
             'rrpd_country STRING) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])

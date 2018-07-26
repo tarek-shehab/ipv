@@ -12,4 +12,4 @@ body   =   ('(app_id BIGINT,'
             'kind STRING,'
             '`date` STRING) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])

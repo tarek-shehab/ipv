@@ -16,4 +16,4 @@ body   =   ('(app_id BIGINT,'
             'corr_addr4 STRING,'
             'conv_text STRING) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])

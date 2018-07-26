@@ -14,4 +14,4 @@ body   =   ('(app_id BIGINT,'
             'addr_country STRING,'
             '`role` STRING ) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])

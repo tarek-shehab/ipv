@@ -13,4 +13,4 @@ body   =   ('(app_id BIGINT,'
             'further_class STRING,'
             'further_subclass STRING) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])
