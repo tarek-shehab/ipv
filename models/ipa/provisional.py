@@ -4,12 +4,12 @@ helpers = importlib.import_module('.helpers', 'models')
 ######################################################################
 #
 ######################################################################
-table  = 'application_d_inventor'
+table  = 'application_provisional'
 
 body   =   ('(app_id BIGINT,'
-            'first_name STRING,'
-            'last_name STRING,'
-            'addr_city STRING,'
-            'addr_country STRING) ')
+            'country STRING,'
+            'doc_number STRING,'
+            'kind STRING,'
+            '`date` STRING) ')
 
 model = helpers.tbl_model(table, [body, None])

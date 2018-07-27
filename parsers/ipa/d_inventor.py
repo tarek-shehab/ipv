@@ -2,19 +2,16 @@
 #
 #############################################################################
 import xml.etree.ElementTree as ET
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'parsers')
 
 #############################################################################
 def create_line(xml_part):
-    to_extract = ["residence/country", 
-                  "nationality/country", 
-                  "addressbook/orgname",
-                  "addressbook/address/city",
-                  "addressbook/address/country",
-                  "addressbook/address/state",
-                  "addressbook/first-name",
-                  "addressbook/last-name",
-#                  "addressbook/role"
+    to_extract = [
+                  ".//first-name",
+                  ".//last-name",
+                  ".//address/city",
+                  ".//address/country"
                  ]
 
     app_num_tag = ".//application-reference/document-id/doc-number"

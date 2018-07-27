@@ -1,17 +1,22 @@
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'models')
+
 ######################################################################
 #
 ######################################################################
-table  = 'applicant'
+table  = 'application_applicant'
 
 body   =   ('(app_id BIGINT,'
-            'residence STRING,'
-            'nationality STRING,'
+            'first_name STRING,'
+            'last_name STRING,'
+            'orgname STRING,'
+            'addr_street STRING,'
             'addr_city STRING,'
             'addr_country STRING,'
             'addr_state STRING,'
-            'first_name STRING,'
-            'last_name STRING) ')
+            'addr_postcode STRING,'
+            'residence STRING,'
+            'nationality STRING) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])
 

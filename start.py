@@ -23,7 +23,9 @@ if __name__ == "__main__":
     import routines.tbl_handlers as tables
 
 #    dbi.init_dbs()
-    res = wpr.parse('ipg180102.xml')
+#    res = wpr.parse('ipg180102.xml')
+    res = wpr.parse('ipa180104.xml')
+#    res = wpr.parse('./source/ad/ad20171231-03.xml')
     print res
     tables.load_tables(res)
 

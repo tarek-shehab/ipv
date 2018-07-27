@@ -2,7 +2,8 @@
 #
 #############################################################################
 import xml.etree.ElementTree as ET
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'parsers')
 
 #############################################################################
 def create_line(xml_part):
@@ -12,15 +13,12 @@ def create_line(xml_part):
                   ".//assignment-record/frame-no"
                  ]
 
-    parts_tag = './/patent-assignees'
+    parts_tag = './/patent-assignors'
 
-    sub_tags = ['.//patent-assignee/name',
-                './/patent-assignee/city',
-                './/patent-assignee/state',
-                './/patent-assignee/country-name',
-                './/patent-assignee/postcode',
-                './/patent-assignee/address-1',
-                './/patent-assignee/address-2'
+    sub_tags = ['.//patent-assignor/name',
+                './/patent-assignor/execution-date/date',
+                './/patent-assignor/address-1',
+                './/patent-assignor/address-2'
                ]
 
     return helpers.as_extract(xml_part, to_extract, parts_tag, sub_tags)

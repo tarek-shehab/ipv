@@ -2,7 +2,8 @@
 #
 #############################################################################
 import xml.etree.ElementTree as ET
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'parsers')
 
 #############################################################################
 def create_line(xml_part):
@@ -14,7 +15,7 @@ def create_line(xml_part):
 
     app_num_tag = ".//application-reference/document-id/doc-number"
 
-    parts_tag = ".//us-bibliographic-data-grant/classification-national"
+    parts_tag = ".//us-bibliographic-data-application/classification-national"
 
     return helpers.cl_extract(xml_part, to_extract, parts_tag, app_num_tag)
 

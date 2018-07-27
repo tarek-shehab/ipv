@@ -2,7 +2,9 @@
 #
 #############################################################################
 import xml.etree.ElementTree as ET
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'parsers')
+
 
 #############################################################################
 def create_line(xml_part):

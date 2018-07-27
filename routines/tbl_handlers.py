@@ -36,7 +36,8 @@ def init_tables(ttype):
 #        return False
 
 def load_tables(properties):
-    if not properties and properties['f_type'] not in ['ipg','ad']:
+    print properties
+    if (not properties) or properties['f_type'] not in list(models.keys()):
        logging.error(('Incorrect argument for tables loader!') % (name))
        return False
 
@@ -48,13 +49,16 @@ def load_tables(properties):
         impala_cur = impala_con.cursor()
 
         for mod in models[properties['f_type']]:
-            if properties['f_type'] == 'att':
-                target_path = '/ipv/results/' + mod + '/WebRoster.txt'
-                insert_sql = ('INSERT INTO TABLE `%s`.`%s` '
+            target_path = ('/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
+
+            if properties['f_type'] in ['att', 'ad']:
+                if properties['f_type'] == 'att':
+                    target_path = '/ipv/results/' + mod + '/WebRoster.txt'
+
+                insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(),
                                                             'ipv_ext', modules[mod].model.get_table_name())
             else:
-                target_path = '/ipv/results/' + mod + '/data' + properties['proc_date'] + '.tsv'
                 insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (year=\'%s\', month=\'%s\', day=\'%s\') '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(), properties['proc_date'][:4],
                                                             properties['proc_date'][4:6],

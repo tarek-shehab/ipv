@@ -1,15 +1,17 @@
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'models')
+
 ######################################################################
 #
 ######################################################################
-table  = 'agent'
+table  = 'application_agent'
 
 body   =   ('(`app_id` BIGINT,'
              '`agent_type` STRING,'
-             '`org_name` STRING,'
-             '`country` STRING,'
              '`first_name` STRING,'
-             '`last_name` STRING) ')
+             '`last_name` STRING,'
+             '`org_name` STRING,'
+             '`country` STRING ) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body,None])
 

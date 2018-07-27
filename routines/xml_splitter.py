@@ -19,6 +19,9 @@ def extract_xml_parts(xml_file):
     elif f_type == 'ad':
         open_tag = "<patent-assignment>"
         close_tag = "</patent-assignment>"
+    elif f_type == 'ipa':
+        open_tag = "<us-patent-application"
+        close_tag = "</us-patent-application>"
     else:
         logging.error(('Can\'t split file <%s>') % (name))
         return False

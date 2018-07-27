@@ -1,16 +1,15 @@
-import helpers
+import importlib
+helpers = importlib.import_module('.helpers', 'models')
+
 ######################################################################
 #
 ######################################################################
-table  = 'inventor'
+table  = 'application_inventor'
 
 body   =   ('(app_id BIGINT,'
-            'residence STRING,'
-            'nationality STRING,'
-            'addr_city STRING,'
-            'addr_country STRING,'
-            'addr_state STRING,'
             'first_name STRING,'
-            'last_name STRING) ')
+            'last_name STRING,'
+            'addr_city STRING,'
+            'addr_country STRING) ')
 
-model = helpers.tbl_model(table, body)
+model = helpers.tbl_model(table, [body, None])

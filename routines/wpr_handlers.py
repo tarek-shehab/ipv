@@ -65,12 +65,13 @@ def parse_file_name(file_name):
     dig = re.search('\d', file_name)
     result['f_type'] =  file_name[:dig.start()] if dig else False
 
-    if result['f_type'] not in ['ipg', 'ad']:
+    if result['f_type'] not in list(cfg.active_parsers.keys()):
         raise Exception(('Incorrect file type for XML parser <%s>') % (file_name))
 
-    if result['f_type'] == 'ipg':
+    if result['f_type'] in ['ipg','ipa']:
         result['proc_date'] =  '20' + re.search("([0-9]{6})", file_name).group(0)
     else: result['proc_date'] =  re.search("([0-9]{8})", file_name).group(0)
+
     if len(result['proc_date']) != 8:
         raise Exception(('Incorrect date extracted from <%s>') % (file_name))
 
@@ -87,15 +88,17 @@ def parse(file_name):
     short_name = os.path.basename(file_name)
     f_prop = parse_file_name(short_name)
 
-    try:
-#    if True:
+#    try:
+    if True:
         modules = init_parsers(f_prop['f_type'])
         logging.info(('Start processing %s file') % (short_name))
         start = time.time()
         fstart = start
         hdfs = hdfs_connect()
+        print file_name
         xml = splitter.extract_xml_parts(file_name)
         logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
+        print 'len',len(xml)
         for mod in modules:
             start = time.time()
             pool = Pool(processes = cpu_count()-1 if cpu_count() > 1 else 1)
@@ -106,15 +109,15 @@ def parse(file_name):
 
             proc_date =  f_prop['proc_date']
 
-            write_hdfs(hdfs, proc_date, mod, results)
+            write_hdfs(hdfs, proc_date, f_prop['f_type'], mod, results)
         hdfs.close()
         set_impala_permissions(cfg.hdfs_base_dir)
         logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
         return f_prop
-    except Exception as err:
-        logging.error(('XML file %s processing failed!') % (short_name))
-        logging.error(err)
-        return False
+#    except Exception as err:
+#        logging.error(('XML file %s processing failed!') % (short_name))
+#        logging.error(err)
+#        return False
 
 def file_to_hdfs(file_name):
     if not file_name:
@@ -168,9 +171,9 @@ def write_result(proc_date, modul, results):
         logging.error(('Failed when writing results for <%s> parser') % (modul))
         logging.error(err)
 
-def write_hdfs(hdfs, proc_date, modul, results):
+def write_hdfs(hdfs, proc_date, ftype, modul, results):
     try:
-        file_name = cfg.hdfs_base_dir + '/results/' + modul + '/data' + proc_date +'.tsv'
+        file_name = ('%s/results/%s/%s/data%s.tsv') % (cfg.hdfs_base_dir, ftype, modul, proc_date)
         of = hdfs.open(file_name, "wb")
         of.write("".join(results))
         of.close()

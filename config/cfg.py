@@ -13,7 +13,19 @@ active_models = {'ipg': [
                           'provisional',
                           'related',
                         ],
-#                 'ad': ['assignments', 'a_assignee'],
+                  'ad': ['assignments', 'assignee', 'assignor'],
+                  'ipa': [
+                         'main',
+#                         'assignee',
+#                         'inventor',
+#                         'd_inventor',
+#                         'applicant',
+#                         'claims',
+#                         'classification',
+#                         'agent',
+#                          'provisional',
+#                          'related',
+                        ],
                  'att': ['attorney']
                 }
 
@@ -29,7 +41,19 @@ active_parsers = {'ipg': [
                           'provisional',
                           'related',
                         ],
-#                 'ad': ['assignments', 'a_assignee'],
+                  'ipa': [
+                          'main',
+#                          'assignee',
+#                         'inventor',
+#                         'd_inventor',
+#                         'applicant',
+#                         'claims',
+#                         'classification',
+#                         'agent',
+#                          'provisional',
+#                          'related',
+                        ],
+                  'ad': ['assignments', 'assignee', 'assignor'],
 #                 'att': ['attorney']
                 }
 

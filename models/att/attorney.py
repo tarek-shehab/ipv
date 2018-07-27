@@ -23,7 +23,7 @@ body   =   ('(`id` STRING,'
             'reg_no STRING,'
             'indication STRING,'
             'gov_empl_status STRING,'
-            'PRIMARY KEY(`id`) ) ')
+            'PRIMARY KEY(`id`) ) STORED AS KUDU ')
 
 body_ext =   ('(`id` STRING,'
             'updated STRING,'
