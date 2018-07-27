@@ -27,11 +27,7 @@ def init_parsers(f_type):
 def set_env():
     # libhdfs.so path
     cmd = ["locate", "-l", "1", "libhdfs.so"]
-    libhdfsso_path = subprocess\
-        .Popen(cmd, stdout=PIPE)\
-        .stdout\
-        .read()\
-        .rstrip()
+    libhdfsso_path = subprocess.check_output(cmd).strip()
     os.environ["ARROW_LIBHDFS_DIR"] = os.path.dirname(libhdfsso_path)
 
     # JAVA_HOME path
@@ -39,11 +35,8 @@ def set_env():
 
     # classpath
     cmd = ["/usr/bin/hadoop", "classpath", "--glob"]
-    hadoop_cp = subprocess\
-        .Popen(cmd, stdout=PIPE)\
-        .stdout\
-        .read()\
-        .rstrip()
+    hadoop_cp = subprocess.check_output(cmd).strip()
+
     if "CLASSPATH" in os.environ:
         os.environ["CLASSPATH"] = os.environ["CLASSPATH"] + ":" + hadoop_cp
     else:
@@ -88,8 +81,8 @@ def parse(file_name):
     short_name = os.path.basename(file_name)
     f_prop = parse_file_name(short_name)
 
-    try:
-#    if True:
+#    try:
+    if True:
         modules = init_parsers(f_prop['f_type'])
         logging.info(('Start processing %s file') % (short_name))
         start = time.time()
@@ -99,7 +92,7 @@ def parse(file_name):
         logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
         for mod in modules:
             start = time.time()
-            pool = Pool(processes = cpu_count()-2 if cpu_count() > 2 else 1)
+            pool = Pool(processes = cpu_count()-3 if cpu_count() > 3 else 1)
             results = pool.map(modules[mod].create_line, xml)
             pool.close()
             results = [res for res in results if res]
@@ -112,10 +105,10 @@ def parse(file_name):
         set_impala_permissions(cfg.hdfs_base_dir)
         logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
         return f_prop
-    except Exception as err:
-        logging.error(('XML file %s processing failed!') % (short_name))
-        logging.error(err)
-        return False
+#    except Exception as err:
+#        logging.error(('XML file %s processing failed!') % (short_name))
+#        logging.error(err)
+#        return False
 
 def file_to_hdfs(file_name):
     if not file_name:
