@@ -18,8 +18,8 @@ def init_models(mtype):
     else: raise Exception('Tables type is incorrect!')
 
 def init_tables(ttype):
-    if True:
-#    try:
+#    if True:
+    try:
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
         modules = init_models(ttype)
@@ -30,21 +30,21 @@ def init_tables(ttype):
         impala_cur.close()
         impala_con.close() 
         return True
-#    except Exception as err:
-#        logging.error('Tables initialization failed!')
-#        logging.error(err)
-#        return False
+    except Exception as err:
+        logging.error('Tables initialization failed!')
+        logging.error(err)
+        return False
 
 def load_tables(properties):
-    print properties
     if (not properties) or properties['f_type'] not in list(models.keys()):
-       logging.error(('Incorrect argument for tables loader!') % (name))
+       logging.error('Incorrect argument for tables loader!')
        return False
 
     modules = init_models(properties['f_type'])
-    init_tables(properties['f_type'])
-    if True:
-#    try:
+
+#    if True:
+    try:
+        if not init_tables(properties['f_type']): raise Exception()
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
 
@@ -59,10 +59,8 @@ def load_tables(properties):
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(),
                                                             'ipv_ext', modules[mod].model.get_table_name())
             else:
-                insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (year=\'%s\', month=\'%s\', day=\'%s\') '
-                              'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(), properties['proc_date'][:4],
-                                                            properties['proc_date'][4:6],
-                                                            properties['proc_date'][6:],
+                insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (proc_date=\'%s\') '
+                              'SELECT * FROM `%s`.`%s`') % ('ipv_db', modules[mod].model.get_table_name(), properties['proc_date'],
                                                             'ipv_ext',
                                                             modules[mod].model.get_table_name())
 
@@ -73,16 +71,14 @@ def load_tables(properties):
 #            refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', modules[mod].model.get_table_name())
 #            impala_cur.execute(refresh)
 
-            print load_sql
             impala_cur.execute(load_sql)
             logging.info(('Data has successfully loaded into temporary table: %s!') % (modules[mod].model.get_table_name()))
-            print insert_sql
             impala_cur.execute(insert_sql)
             logging.info(('Data has successfully loaded into HDFS table: %s!') % (modules[mod].model.get_table_name()))
         impala_cur.close()
         impala_con.close()
         return True
-#    except Exception as err:
-#        logging.error('Tables loading failed!')
-#        logging.error(err)
-#        return False
+    except Exception as err:
+        logging.error('Tables loading failed!')
+        logging.error(err)
+        return False

@@ -40,7 +40,12 @@ def create_line(xml_part):
 
     for tag in to_extract:
         ct = xml.find(tag)
-        res_list.append(helpers.get_value(ct))
+        if tag == ".//rule-47-flag":
+            if ct is not None:
+                res_list.append('True')
+            else: res_list.append('False')
+        else:
+            res_list.append(helpers.get_value(ct))
 
     result = u"\t".join(res_list).encode('utf-8').strip()+"\n"
     return result

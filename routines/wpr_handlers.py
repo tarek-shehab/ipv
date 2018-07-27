@@ -88,17 +88,15 @@ def parse(file_name):
     short_name = os.path.basename(file_name)
     f_prop = parse_file_name(short_name)
 
-#    try:
-    if True:
+    try:
+#    if True:
         modules = init_parsers(f_prop['f_type'])
         logging.info(('Start processing %s file') % (short_name))
         start = time.time()
         fstart = start
         hdfs = hdfs_connect()
-        print file_name
         xml = splitter.extract_xml_parts(file_name)
         logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
-        print 'len',len(xml)
         for mod in modules:
             start = time.time()
             pool = Pool(processes = cpu_count()-1 if cpu_count() > 1 else 1)
@@ -114,10 +112,10 @@ def parse(file_name):
         set_impala_permissions(cfg.hdfs_base_dir)
         logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
         return f_prop
-#    except Exception as err:
-#        logging.error(('XML file %s processing failed!') % (short_name))
-#        logging.error(err)
-#        return False
+    except Exception as err:
+        logging.error(('XML file %s processing failed!') % (short_name))
+        logging.error(err)
+        return False
 
 def file_to_hdfs(file_name):
     if not file_name:

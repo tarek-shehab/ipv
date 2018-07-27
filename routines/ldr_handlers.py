@@ -23,7 +23,6 @@ def f_get(url, target):
     try:
         if not os.path.exists(target):
             os.makedirs(target)
-#        urllib.urlretrieve (url, target + name)
         dfile = wget.download(url, target+name, bar=False)
         with open(dfile, 'rb') as fl:
             part = fl.read(500)

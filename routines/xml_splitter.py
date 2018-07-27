@@ -6,7 +6,7 @@ import re
 #############################################################################
 def extract_xml_parts(xml_file):
     if not xml_file:
-        logging.error(('Incorrect argument for XML splitter') % (name))
+        logging.error('Incorrect argument for XML splitter')
         return False
 
     name = os.path.basename(xml_file)
@@ -40,15 +40,12 @@ def extract_xml_parts(xml_file):
             res.append(line.lstrip())
             res.insert(0, marker)
             elm = "".join(res)
-#            print elm
-#            print "-----------------------"
             xmls.append(elm)
             i+=1
             res = []
             continue
         if len(res) != 0: res.append(line.lstrip())
 
-#    print "Total parts:", i
 
     return xmls
 

@@ -18,7 +18,7 @@ class tbl_model():
         else:
             schema = ('%s `%s`.`%s` '
                       '%s '
-                      'PARTITIONED BY (year STRING, month STRING, day STRING) '
+                      'PARTITIONED BY (proc_date STRING) '
                       'STORED AS PARQUET ') % (self.header, self.int_db, self.table, self.body_int)
         return schema
 
