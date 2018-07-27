@@ -71,7 +71,7 @@ def parse_file_name(file_name):
     return result
 
 def hdfs_connect():
-    set_env()
+#    set_env()
     return pa.hdfs.connect("192.168.250.15", 8020, user='hdfs', driver='libhdfs')
 
 def parse(file_name):

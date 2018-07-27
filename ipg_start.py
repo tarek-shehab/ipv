@@ -20,6 +20,7 @@ if __name__ == "__main__":
     processed_dir = './source/processed/ipg/'
 
     ftime = time.time()
+    parser.set_env()
     if dbs.init_dbs():
 
 #        flist = ['ipg170103.xml']
