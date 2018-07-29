@@ -1,3 +1,5 @@
+######################################################################
+import random
 
 custom_user_agent = [
 	    "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 1.1.4322; InfoPath.2; .NET CLR 3.0.04506.648)",
@@ -51,3 +53,6 @@ custom_user_agent = [
 	    "Opera/9.80 (Windows NT 5.2; Edition Yx) Presto/2.12.388 Version/12.12",
 	    "Opera/9.80 (Windows NT 6.2; WOW64; Edition Ukraine Local) Presto/2.12.388 Version/12.17"
 	    ] 
+
+def get_user_agent():
+    return custom_user_agent[random.randint(0, len(custom_user_agent)-1)]

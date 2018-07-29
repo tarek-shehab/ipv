@@ -14,7 +14,8 @@ import routines.wpr_handlers as parser
 #############################################################################
 if __name__ == "__main__":
 
-    logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
+    logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s',
+                        level=logging.INFO)
 
     source_dir = './source/ipg/'
     processed_dir = './source/processed/ipg/'

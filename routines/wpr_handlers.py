@@ -92,9 +92,11 @@ def parse(file_name):
         logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
         for mod in modules:
             start = time.time()
-            pool = Pool(processes = cpu_count()-3 if cpu_count() > 3 else 1)
+#            pool = Pool(processes = cpu_count()-3 if cpu_count() > 3 else 1, maxtasksperchild=100)
+            pool = Pool(processes = 4, maxtasksperchild=100)
             results = pool.map(modules[mod].create_line, xml)
             pool.close()
+            pool.join()
             results = [res for res in results if res]
             logging.info(('Parser <%s> has done in %s sec.') % (mod, str(round(time.time()-start, 2))))
 
