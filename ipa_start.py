@@ -24,11 +24,11 @@ if __name__ == "__main__":
     parser.set_env()
     if dbs.init_dbs():
 
-        flist = ['ipa100107.xml']
-#        flist = []
-#        for (dirpath, dirnames, filenames) in walk(source_dir):
-#            flist.extend(filenames)
-#            break
+#        flist = ['ipa100107.xml']
+        flist = []
+        for (dirpath, dirnames, filenames) in walk(source_dir):
+            flist.extend(filenames)
+            break
 
         logging.info(('Found %s files to process') % (len(flist)))
         for fl in flist:
