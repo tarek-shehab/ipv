@@ -9,7 +9,7 @@ helpers = importlib.import_module('.helpers', 'parsers')
 #############################################################################
 def create_line(xml_part):
 
-    to_extract = [".//patent-properties/patent-property/document-id/doc-number",
+    to_extract = [".//patent-properties/patent-property/document-id",
                   ".//assignment-record/reel-no",
                   ".//assignment-record/frame-no",
                   ".//assignment-record/last-update-date/date",
@@ -22,14 +22,5 @@ def create_line(xml_part):
                   ".//assignment-record/correspondent/address-4",
                   ".//assignment-record/conveyance-text"
                  ]
-    xml = ET.fromstring(xml_part)
 
-    res_list = []
-
-    for tag in to_extract:
-        ct = xml.find(tag)
-        res_list.append(ct.text if (ct is not None and ct.text is not None) else "-")
-
-    result = u"\t".join(res_list).encode('utf-8').strip()+"\n"
-    return result
-
+    return helpers.as_extract(xml_part, to_extract)

@@ -8,9 +8,10 @@ helpers = importlib.import_module('.helpers', 'parsers')
 #############################################################################
 def create_line(xml_part):
 
-    to_extract = [".//patent-properties/patent-property/document-id/doc-number",
+    to_extract = [".//patent-properties/patent-property/document-id",
                   ".//assignment-record/reel-no",
-                  ".//assignment-record/frame-no"
+                  ".//assignment-record/frame-no",
+                  ".//assignment-record/last-update-date/date"
                  ]
 
     parts_tag = './/patent-assignees'

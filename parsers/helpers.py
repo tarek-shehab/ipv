@@ -123,27 +123,44 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
         logging.error(err)
         return False
 
-def as_extract(xml_part, to_extract, parts_tag, sub_tags):
+def as_extract(xml_part, to_extract, parts_tag=None, sub_tags=None):
     try:
+        tlist = to_extract[:]
         xml = ET.fromstring(xml_part)
-        parts = xml.findall(parts_tag)
-        res_list = []
-        if len(parts) != 0:
-            result = ''
-            for tag in to_extract:
+        props = xml.findall(tlist.pop(0))
+        if len(props) == 0: print 'err'
+        app_id_list = []
+        for elm in props:
+            if get_value(elm.find('.//kind')) == 'X0':
+                app_id_list.append(get_value(elm.find('.//doc-number')))
+
+        if len(app_id_list) == 0: 
+            return False
+
+        result = ''
+        for app_id in app_id_list:
+            res_list = [app_id]
+
+            for tag in tlist:
                 ct = xml.find(tag)
                 res_list.append(get_value(ct))
-            temp_list = res_list[:]
-            for elm in parts:
-                for tag in sub_tags:
-                    ct = elm.find(tag)
-                    res_list.append(get_value(ct))
 
+            if parts_tag and sub_tags:
+                temp_list = res_list[:]
+                parts = xml.findall(parts_tag)
+                if len(parts) != 0:
+                    for elm in parts:
+                        for tag in sub_tags:
+                            ct = elm.find(tag)
+                            res_list.append(get_value(ct))
+                        result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+                        res_list = temp_list[:]
+                else: return False
+            else:
                 result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
-                res_list = temp_list[:]
-            return result
 
-        else: return False
+        return result
+
     except Exception as err:
         logging.error('AS-parser error!')
         logging.error(err)
