@@ -27,7 +27,7 @@ if __name__ == "__main__":
 #    res = wpr.parse('ipa180104.xml')
     wpr.set_env()
 
-    res = wpr.parse('./source/ad/ad20171231-03.xml')
+    res = wpr.parse('./source/ad/ad20171231-18.xml')
     print res
     tables.load_tables(res)
 

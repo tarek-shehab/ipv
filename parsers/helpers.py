@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 import logging
+import time
+
 
 ######################################################################
 #
@@ -125,37 +127,50 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
 
 def as_extract(xml_part, to_extract, parts_tag=None, sub_tags=None):
     try:
+        t = time.time()
         tlist = to_extract[:]
         xml = ET.fromstring(xml_part)
         props = xml.findall(tlist.pop(0))
-        if len(props) == 0: print 'err'
+
         app_id_list = []
+
         for elm in props:
-            if get_value(elm.find('.//kind')) == 'X0':
-                app_id_list.append(get_value(elm.find('.//doc-number')))
+            if get_value(elm.find('document-id/kind')) == 'X0':
+                app_id_list.append(get_value(elm.find('document-id/doc-number')))
 
         if len(app_id_list) == 0: 
             return False
 
         result = ''
+        main_part = []
+
+        for tag in tlist:
+            ct = xml.find(tag)
+            main_part.append(get_value(ct))
+
+        if parts_tag and sub_tags:
+            parts_list = []
+            parts = xml.findall(parts_tag)
+            if len(parts) != 0:
+                for elm in parts:
+                    ins_list = []
+                    for tag in sub_tags:
+                        ct = elm.find(tag)
+                        ins_list.append(get_value(ct))
+                    parts_list.append(ins_list)
+#                    print parts_list
+            else: return False
+
         for app_id in app_id_list:
             res_list = [app_id]
-
-            for tag in tlist:
-                ct = xml.find(tag)
-                res_list.append(get_value(ct))
+            res_list.extend(main_part)
 
             if parts_tag and sub_tags:
-                temp_list = res_list[:]
-                parts = xml.findall(parts_tag)
-                if len(parts) != 0:
-                    for elm in parts:
-                        for tag in sub_tags:
-                            ct = elm.find(tag)
-                            res_list.append(get_value(ct))
-                        result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
-                        res_list = temp_list[:]
-                else: return False
+                for part in parts_list:
+                    temp_list = res_list[:]
+#                    print part
+                    temp_list.extend(part)
+                    result += u"\t".join(temp_list).encode('utf-8').strip()+"\n"
             else:
                 result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
 

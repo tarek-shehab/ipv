@@ -93,8 +93,11 @@ def parse(file_name):
         for mod in modules:
             start = time.time()
 #            pool = Pool(processes = cpu_count()-3 if cpu_count() > 3 else 1, maxtasksperchild=100)
+#            pool = Pool(processes = 6, maxtasksperchild=100)
+
             pool = Pool(processes = 4, maxtasksperchild=100)
             results = pool.map(modules[mod].create_line, xml)
+
             pool.close()
             pool.join()
             results = [res for res in results if res]

@@ -13,7 +13,11 @@ active_models = {'ipg': [
                          'provisional',
                          'related',
                         ],
-                  'ad': ['assignments', 'assignee', 'assignor'],
+                  'ad': [
+                         'assignments',
+                         'assignee',
+                         'assignor'
+                          ],
                   'ipa': [
                           'main',
                           'assignee',
@@ -53,8 +57,12 @@ active_parsers = {'ipg': [
                           'provisional',
                           'related',
                         ],
-                  'ad': ['assignments', 'assignee', 'assignor'],
-#                 'att': ['attorney']
+                  'ad': [
+                         'assignments',
+                         'assignee',
+                         'assignor'
+                        ],
+                  'att': ['attorney']
                 }
 
 hdfs_base_dir = '/ipv'
