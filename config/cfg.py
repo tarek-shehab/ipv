@@ -62,7 +62,9 @@ active_parsers = {'ipg': [
                          'assignee',
                          'assignor'
                         ],
-                  'att': ['attorney']
+                  'att': ['attorney'],
+                  'fee_m': ['fee_main'],
+                  'fee_d': ['fee_descr']
                 }
 
 hdfs_base_dir = '/ipv'

@@ -16,6 +16,10 @@ import routines.wpr_handlers as copier
 #############################################################################
 if __name__ == "__main__":
 
+
+
+    copier.local_to_hdfs('./source/fee/MaintFeeEvents_20180730.txt', '/ipv/results/temp/fee')
+    quit()
     logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s', level=logging.INFO)
     stime = time.time()
     target_dir = './source/att/'

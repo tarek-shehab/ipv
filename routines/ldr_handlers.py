@@ -16,13 +16,20 @@ import wget
 from bs4 import BeautifulSoup
 import socket
 
+
 def f_get(url, target):
-    name = url[url.rfind('/') + 1:]
+    name = url.split('/')[-1]
     logging.info(('Start downloading <%s>') % (name))
     stime = time.time()
     try:
         if not os.path.exists(target):
             os.makedirs(target)
+        meta = urllib.urlopen(url).info()
+        size = int(meta.getheaders("Content-Length")[0])
+
+        if size < 1000:
+            raise Exception(('Seems like file <%s> is empty') % (name))
+
         dfile = wget.download(url, target+name, bar=False)
         with open(dfile, 'rb') as fl:
             part = fl.read(500)

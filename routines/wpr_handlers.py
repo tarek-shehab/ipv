@@ -54,16 +54,29 @@ def set_impala_permissions(base_dir):
         logging.error(err)
 
 def parse_file_name(file_name):
+    name_templates = {'att'  : {'template':'WebRoster.txt', 'prefix': '' , 'reg': None},
+                      'fee_m': {'template':'MaintFeeEvents_','prefix': '', 'reg': '([0-9]{8})'},
+                      'fee_d': {'template':'MaintFeeEventsDesc_','prefix': '', 'reg': '([0-9]{8})'},
+                      'ad'   : {'template':'ad', 'prefix': '', 'reg': '([0-9]{8})'},
+                      'ipa'  : {'template':'ipa','prefix': '20', 'reg': '([0-9]{6})'},
+                      'ipg'  : {'template':'ipg','prefix': '20', 'reg': '([0-9]{6})'}
+                     }
     result = {}
-    dig = re.search('\d', file_name)
-    result['f_type'] =  file_name[:dig.start()] if dig else False
+
+    result['f_type'] = False
+    for ftype in name_templates:
+        if file_name.startswith(name_templates[ftype]['template']):
+            result['f_type'] = ftype
+            break
 
     if result['f_type'] not in list(cfg.active_parsers.keys()):
-        raise Exception(('Incorrect file type for XML parser <%s>') % (file_name))
+        raise Exception(('Incorrect file type for File parser <%s>') % (file_name))
 
-    if result['f_type'] in ['ipg','ipa']:
-        result['proc_date'] =  '20' + re.search("([0-9]{6})", file_name).group(0)
-    else: result['proc_date'] =  re.search("([0-9]{8})", file_name).group(0)
+    if name_templates[result['f_type']]['reg']:
+        result['proc_date'] = name_templates[result['f_type']]['prefix'] + \
+                              re.search(name_templates[result['f_type']]['reg'], file_name).group(0)
+    else: result['proc_date'] = str(datetime.now())[:10].replace('-','')
+
 
     if len(result['proc_date']) != 8:
         raise Exception(('Incorrect date extracted from <%s>') % (file_name))
@@ -74,48 +87,64 @@ def hdfs_connect():
 #    set_env()
     return pa.hdfs.connect("192.168.250.15", 8020, user='hdfs', driver='libhdfs')
 
+def parse_xml(file_name, f_prop, modules):
+    short_name = os.path.basename(file_name)
+    start = time.time()
+    fstart = start
+    hdfs = hdfs_connect()
+    xml = splitter.extract_xml_parts(file_name)
+    logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
+    for mod in modules:
+        start = time.time()
+        pool = Pool(processes = 4, maxtasksperchild=100)
+        results = pool.map(modules[mod].create_line, xml)
+
+        pool.close()
+        pool.join()
+        results = [res for res in results if res]
+        logging.info(('Parser <%s> has done in %s sec.') % (mod, str(round(time.time()-start, 2))))
+
+        proc_date =  f_prop['proc_date']
+
+        write_hdfs(hdfs, proc_date, f_prop['f_type'], mod, results)
+    hdfs.close()
+    set_impala_permissions(cfg.hdfs_base_dir)
+    logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
+
+def parse_txt(file_name, f_prop, modules):
+    hdfs_path = ('%s/results/%s/') % (cfg.hdfs_base_dir, f_prop['f_type'])
+    print file_name, hdfs_path
+    local_to_hdfs(file_name, hdfs_path)
+
 def parse(file_name):
+    workers = {'att'  : parse_txt,
+               'fee_m': parse_txt,
+               'fee_d': parse_txt,
+               'ad'   : parse_xml,
+               'ipa'  : parse_xml,
+               'ipg'  : parse_xml
+              }
+
     if not file_name:
-        logging.error(('Incorrect argument for XML parser') % (file_name))
+        logging.error(('Incorrect argument for File parser') % (file_name))
         return False
     short_name = os.path.basename(file_name)
     f_prop = parse_file_name(short_name)
-
+    print f_prop
     try:
 #    if True:
         modules = init_parsers(f_prop['f_type'])
         logging.info(('Start processing %s file') % (short_name))
-        start = time.time()
-        fstart = start
-        hdfs = hdfs_connect()
-        xml = splitter.extract_xml_parts(file_name)
-        logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
-        for mod in modules:
-            start = time.time()
-#            pool = Pool(processes = cpu_count()-3 if cpu_count() > 3 else 1, maxtasksperchild=100)
-#            pool = Pool(processes = 6, maxtasksperchild=100)
+        print file_name
+        workers[f_prop['f_type']](file_name, f_prop, modules)
 
-            pool = Pool(processes = 4, maxtasksperchild=100)
-            results = pool.map(modules[mod].create_line, xml)
-
-            pool.close()
-            pool.join()
-            results = [res for res in results if res]
-            logging.info(('Parser <%s> has done in %s sec.') % (mod, str(round(time.time()-start, 2))))
-
-            proc_date =  f_prop['proc_date']
-
-            write_hdfs(hdfs, proc_date, f_prop['f_type'], mod, results)
-        hdfs.close()
-        set_impala_permissions(cfg.hdfs_base_dir)
-        logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
         return f_prop
     except Exception as err:
         logging.error(('XML file %s processing failed!') % (short_name))
         logging.error(err)
         return False
 
-def file_to_hdfs(file_name):
+def atorney_to_hdfs(file_name):
     if not file_name:
         logging.error(('Incorrect file name') % (file_name))
         return False
@@ -155,6 +184,18 @@ def file_to_hdfs(file_name):
         logging.error(('Failed to copy <%s> to HDFS!') % (short_name))
         logging.error(err)
         return False
+
+def local_to_hdfs(local_file, hdfs_path):
+
+    cmds = [["hdfs", "dfs", "-mkdir", "-p", hdfs_path],
+            ["hdfs", "dfs", "-copyFromLocal", "-f", local_file, hdfs_path]]
+
+    for cmd in cmds:
+        result = subprocess.check_output(cmd).strip()
+        if len(result) > 0: raise Exception(result)
+
+    set_impala_permissions(cfg.hdfs_base_dir)
+    return True
 
 def write_result(proc_date, modul, results):
     try:
