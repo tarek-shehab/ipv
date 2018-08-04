@@ -59,7 +59,8 @@ def parse_file_name(file_name):
                       'fee_d': {'template':'MaintFeeEventsDesc_','prefix': '', 'reg': '([0-9]{8})'},
                       'ad'   : {'template':'ad', 'prefix': '', 'reg': '([0-9]{8})'},
                       'ipa'  : {'template':'ipa','prefix': '20', 'reg': '([0-9]{6})'},
-                      'ipg'  : {'template':'ipg','prefix': '20', 'reg': '([0-9]{6})'}
+                      'ipg'  : {'template':'ipg','prefix': '20', 'reg': '([0-9]{6})'},
+                      'pg'   : {'template':'pg','prefix': '20', 'reg': '([0-9]{6})'}
                      }
     result = {}
 
@@ -87,7 +88,10 @@ def hdfs_connect():
 #    set_env()
     return pa.hdfs.connect("192.168.250.15", 8020, user='hdfs', driver='libhdfs')
 
-def parse_xml(file_name, f_prop, modules):
+def parse_xml(*args):
+    file_name = args[0]
+    f_prop = args[1]
+    modules = args[2]
     short_name = os.path.basename(file_name)
     start = time.time()
     fstart = start
@@ -96,11 +100,24 @@ def parse_xml(file_name, f_prop, modules):
     logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
     for mod in modules:
         start = time.time()
-        pool = Pool(processes = 4, maxtasksperchild=100)
+        results = []
+#        for part in xml:
+#            print "##############################################################"
+#            part = part.replace('&',' ')
+#            try:
+#                results.append(modules[mod].create_line(part))
+#            except Exception as err:
+#                print part
+#                print err
+#        try:
+        pool = Pool(processes = 5, maxtasksperchild=1000)
         results = pool.map(modules[mod].create_line, xml)
-
+#
         pool.close()
         pool.join()
+#        except Exception as err:
+#            print err
+
         results = [res for res in results if res]
         logging.info(('Parser <%s> has done in %s sec.') % (mod, str(round(time.time()-start, 2))))
 
@@ -111,40 +128,47 @@ def parse_xml(file_name, f_prop, modules):
     set_impala_permissions(cfg.hdfs_base_dir)
     logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
 
-def parse_txt(file_name, f_prop, modules):
-    hdfs_path = ('%s/results/%s/') % (cfg.hdfs_base_dir, f_prop['f_type'])
-    print file_name, hdfs_path
-    local_to_hdfs(file_name, hdfs_path)
+def parse_txt(*args):
+    hdfs_path = ('%s/results/%s/%s/data%s.tsv') % (cfg.hdfs_base_dir, args[1]['f_type'],'fee_main', args[1]['proc_date'])
+#    print args[0], hdfs_path
+    local_to_hdfs(args[0], hdfs_path)
 
 def parse(file_name):
-    workers = {'att'  : parse_txt,
-               'fee_m': parse_txt,
-               'fee_d': parse_txt,
-               'ad'   : parse_xml,
-               'ipa'  : parse_xml,
-               'ipg'  : parse_xml
-              }
-
     if not file_name:
         logging.error(('Incorrect argument for File parser') % (file_name))
         return False
-    short_name = os.path.basename(file_name)
-    f_prop = parse_file_name(short_name)
-    print f_prop
+
     try:
 #    if True:
+        short_name = os.path.basename(file_name)
+        f_prop = parse_file_name(short_name)
+
         modules = init_parsers(f_prop['f_type'])
         logging.info(('Start processing %s file') % (short_name))
-        print file_name
-        workers[f_prop['f_type']](file_name, f_prop, modules)
+
+        workers = {'att'  : [parse_att, (file_name, f_prop)],
+                   'fee_m': [parse_txt, (file_name, f_prop)],
+                   'fee_d': [parse_fee_d, (file_name, f_prop)],
+                   'ad'   : [parse_xml, (file_name, f_prop, modules)],
+                   'ipa'  : [parse_xml, (file_name, f_prop, modules)],
+                   'ipg'  : [parse_xml, (file_name, f_prop, modules)],
+                   'pg'   : [parse_xml, (file_name, f_prop, modules)]
+                  }
+
+#        print f_prop
+#        print file_name
+
+        workers[f_prop['f_type']][0](*workers[f_prop['f_type']][1])
 
         return f_prop
     except Exception as err:
         logging.error(('XML file %s processing failed!') % (short_name))
         logging.error(err)
-        return False
+#        return False
 
-def atorney_to_hdfs(file_name):
+def parse_att(*args):
+    file_name = args[0]
+    f_prop = args[1]
     if not file_name:
         logging.error(('Incorrect file name') % (file_name))
         return False
@@ -169,7 +193,46 @@ def atorney_to_hdfs(file_name):
 
         hdfs = hdfs_connect()
 
-        hdfs_name = cfg.hdfs_base_dir + '/results/attorney/' + short_name
+        hdfs_name = ('%s/results/att/attorney/data%s.tsv') % (cfg.hdfs_base_dir, f_prop['proc_date'])
+
+        of = hdfs.open(hdfs_name, "wb")
+        of.write("".join(content))
+        of.close()
+
+        logging.info(('File <%s> hase successfully copied to HDFS') % (short_name))
+
+        hdfs.close()
+        set_impala_permissions(cfg.hdfs_base_dir)
+        return hdfs_name
+    except Exception as err:
+        logging.error(('Failed to copy <%s> to HDFS!') % (short_name))
+        logging.error(err)
+        return False
+
+def parse_fee_d(*args):
+    file_name = args[0]
+    f_prop = args[1]
+    if not file_name:
+        logging.error(('Incorrect file name') % (file_name))
+        return False
+    short_name = os.path.basename(file_name)
+    updated = f_prop['proc_date']
+    try:
+        start = time.time()
+        fstart = start
+        with open(file_name, 'rb') as in_file:
+            lines = in_file.readlines()
+        content = []
+
+        for line in lines:
+            elm = line.strip()
+            if len(elm) > 0:
+                content.append(elm[:5].strip()+'\t'+elm[6:].strip()+'\n')
+
+        content.append('FDFDF\t'+updated+'\n')
+        hdfs = hdfs_connect()
+
+        hdfs_name = ('%s/results/fee_d/fee_descr/data%s.tsv') % (cfg.hdfs_base_dir, f_prop['proc_date'])
 
         of = hdfs.open(hdfs_name, "wb")
         of.write("".join(content))
@@ -186,8 +249,8 @@ def atorney_to_hdfs(file_name):
         return False
 
 def local_to_hdfs(local_file, hdfs_path):
-
-    cmds = [["hdfs", "dfs", "-mkdir", "-p", hdfs_path],
+    hdfs_dir = '/'.join(hdfs_path.split('/')[:-1])
+    cmds = [["hdfs", "dfs", "-mkdir", "-p", hdfs_dir],
             ["hdfs", "dfs", "-copyFromLocal", "-f", local_file, hdfs_path]]
 
     for cmd in cmds:
@@ -214,9 +277,10 @@ def write_hdfs(hdfs, proc_date, ftype, modul, results):
         of = hdfs.open(file_name, "wb")
         of.write("".join(results))
         of.close()
-
         logging.info(('Data for <%s> parser has successfully written') % (modul))
+        return file_name
     except Exception as err:
         logging.error(('Failed when writing results for <%s> parser') % (modul))
         logging.error(err)
+        return False
 

@@ -8,26 +8,24 @@ import urllib
 from lxml import html
 from impala.dbapi import connect
 from datetime import datetime
+import importlib
+cfg = importlib.import_module('.cfg', 'config')
 
-links = {'ipg': 'https://bulkdata.uspto.gov/data/patent/grant/redbook/fulltext/',
-         'ipa': 'https://bulkdata.uspto.gov/data/patent/application/redbook/fulltext/',
-         'ad' : 'https://bulkdata.uspto.gov/data/patent/assignment/',
-         'fee': 'https://bulkdata.uspto.gov/data/patent/maintenancefee/MaintFeeEvents.zip'
-        }
+def get_possible_ftypes():
+   return [t if not t.startswith('fee') else 'fee' for t in cfg.active_parsers.keys()]
 
 def get_links_list(year, ftype):
     logging.info('Creating links list')
-    if ftype not in ['ipg', 'ipa', 'ad', 'fee']: raise Exception('Incorrect file type!')
-
+    if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
     res = []
     if ftype == 'ad': 
-        url = links[ftype]
+        url = cfg.dwl_links[ftype]
         durl_prefix = url
-    elif ftype == 'fee':
-        return [links[ftype]]
+    elif ftype in ['fee','att']:
+        return [cfg.dwl_links[ftype]]
     else:
-        url =('%s%s/') % (links[ftype], year)
-        durl_prefix = ('%s20') % (links[ftype])
+        url =('%s%s/') % (cfg.dwl_links[ftype], year)
+        durl_prefix = ('%s20') % (cfg.dwl_links[ftype])
 
     HEADERS = {'User-Agent': ua.get_user_agent()}
 
@@ -41,17 +39,18 @@ def get_links_list(year, ftype):
         if fl.endswith('.zip') and (fl.split('/')[-1].find('-') < 0):
             if ftype == 'ad':
                 res.append(durl_prefix + fl)
-            else: res.append(durl_prefix + fl[3:5] + '/' + fl)
+            elif ftype in ['pg','pa']: res.append(durl_prefix + fl[2:4] + '/' + fl)
+            else:res.append(durl_prefix + fl[3:5] + '/' + fl)
 
     return res if len(res) > 0 else False
 
 
 def get_links(year, ftype, full_list=None):
 
-    if ftype not in ['ipg', 'ipa', 'ad', 'fee']: raise Exception('Incorrect file type!')
+    if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
     links = get_links_list(year, ftype)
     if not links: raise Exception('No links were extracted for this year')
-
+    print links
     res = []
     if not full_list:
         tbl_preffix = {'ipg':'grant',

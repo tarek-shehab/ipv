@@ -53,7 +53,7 @@ def extract(xml_part, to_extract, parts_tag, app_num_tag):
         logging.error(err)
         return False
 
-def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag):
+def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
     try:
         args = get_parts(xml_part, parts_tag, app_num_tag)
         parts = args[0]
@@ -62,11 +62,14 @@ def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag):
         if len(parts) != 0:
             result = ''
             for elm in parts:
-                res_list = [app_num, elm.get(add_tag)]
+                if add_tag:
+                    res_list = [app_num, elm.get(add_tag)]
+                else:
+                    res_list = [app_num, '-']
                 for tag in to_extract:
                     ct = elm.find(tag)
                     res_list.append(get_value(ct))
-                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+                result += u"\t".join(res_list).encode('utf-8').strip() +"\n"
             return result
 
         else: return False
@@ -86,6 +89,7 @@ def get_class(arg):
 
 def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
     try:
+#    if True:
         args = get_parts(xml_part, parts_tag, app_num_tag)
         parts = args[0]
         app_num = args[1]
@@ -122,6 +126,48 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
         else: return False
     except Exception as err:
         logging.error('CL-parser error!')
+        logging.error(err)
+        return False
+
+def cl_old_extract(xml_part, to_extract, parts_tag, app_num_tag):
+    try:
+#    if True:
+        args = get_parts(xml_part, parts_tag, app_num_tag)
+        parts = args[0]
+        app_num = args[1]
+        if len(parts) != 0:
+            result = ''
+            for elm in parts:
+                res_list = [app_num]
+                for tag in to_extract:
+                    ct = elm.find(tag)
+                    if tag == "country":
+                        res_list.append(get_value(ct))
+                    elif tag == "B521/PDAT":
+                        value = get_value(ct)
+                        if value != '-':
+                            res_list.extend(get_class(value))
+                        else: res_list.extend(['-', '-'])
+                    elif tag == "B522/PDAT":
+                        temp_list = res_list[:]
+                        ct = elm.findall(tag)
+                        if len(ct) != 0:
+                            for c in ct:
+                                value = get_value(c)
+                                if value != '-':
+                                    res_list.extend(get_class(value))
+                                else: res_list.extend(['-', '-'])
+                                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+                                res_list = temp_list[:]
+
+                        else:
+                             res_list.extend(['-', '-'])
+                             result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+            return result
+
+        else: return False
+    except Exception as err:
+        logging.error('CL_OLD-parser error!')
         logging.error(err)
         return False
 
