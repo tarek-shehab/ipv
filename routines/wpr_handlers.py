@@ -60,7 +60,8 @@ def parse_file_name(file_name):
                       'ad'   : {'template':'ad', 'prefix': '', 'reg': '([0-9]{8})'},
                       'ipa'  : {'template':'ipa','prefix': '20', 'reg': '([0-9]{6})'},
                       'ipg'  : {'template':'ipg','prefix': '20', 'reg': '([0-9]{6})'},
-                      'pg'   : {'template':'pg','prefix': '20', 'reg': '([0-9]{6})'}
+                      'pg'   : {'template':'pg','prefix': '20', 'reg': '([0-9]{6})'},
+                      'pa'   : {'template':'pa','prefix': '20', 'reg': '([0-9]{6})'},
                      }
     result = {}
 
@@ -105,7 +106,7 @@ def parse_xml(*args):
 #            print "##############################################################"
 #            part = part.replace('&',' ')
 #            try:
-#                results.append(modules[mod].create_line(part))
+#            results.append(modules[mod].create_line(part))
 #            except Exception as err:
 #                print part
 #                print err
@@ -138,8 +139,8 @@ def parse(file_name):
         logging.error(('Incorrect argument for File parser') % (file_name))
         return False
 
-    try:
-#    if True:
+#    try:
+    if True:
         short_name = os.path.basename(file_name)
         f_prop = parse_file_name(short_name)
 
@@ -152,7 +153,8 @@ def parse(file_name):
                    'ad'   : [parse_xml, (file_name, f_prop, modules)],
                    'ipa'  : [parse_xml, (file_name, f_prop, modules)],
                    'ipg'  : [parse_xml, (file_name, f_prop, modules)],
-                   'pg'   : [parse_xml, (file_name, f_prop, modules)]
+                   'pg'   : [parse_xml, (file_name, f_prop, modules)],
+                   'pa'   : [parse_xml, (file_name, f_prop, modules)]
                   }
 
 #        print f_prop
@@ -161,9 +163,9 @@ def parse(file_name):
         workers[f_prop['f_type']][0](*workers[f_prop['f_type']][1])
 
         return f_prop
-    except Exception as err:
-        logging.error(('XML file %s processing failed!') % (short_name))
-        logging.error(err)
+#    except Exception as err:
+#        logging.error(('XML file %s processing failed!') % (short_name))
+#        logging.error(err)
 #        return False
 
 def parse_att(*args):

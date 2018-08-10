@@ -28,7 +28,8 @@ def extract_xml_parts(xml_file):
                'ipg':{'open_tag':'<us-patent-grant', 'close_tag':'</us-patent-grant>'},
                'ipa':{'open_tag':'<us-patent-application', 'close_tag':'</us-patent-application>'},
                'ad' :{'open_tag':'<patent-assignment>', 'close_tag':'</patent-assignment>'},
-               'pg' :{'open_tag':'<PATDOC', 'close_tag':'</PATDOC>'}
+               'pg' :{'open_tag':'<PATDOC', 'close_tag':'</PATDOC>'},
+               'pa' :{'open_tag':'<patent-application-publication>', 'close_tag':'</patent-application-publication>'}
               }
 
     open_tag  = borders.get(f_type).get('open_tag')

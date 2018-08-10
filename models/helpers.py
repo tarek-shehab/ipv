@@ -19,8 +19,12 @@ class tbl_model():
         self.ext_constructor = {
                                 'ipg'  : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_int, self.row_tab)),
                                 'ipa'  : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_int, self.row_tab)),
+                                'pa'   : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_int, self.row_tab)),
+                                'pg'   : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_int, self.row_tab)),
                                 'ad'   : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
                                 'att'  : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
+                                'thist': ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
+                                'ainf' : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
                                 'fee_m': ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_space)),
                                 'fee_d': ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab))
                                 }
@@ -28,7 +32,11 @@ class tbl_model():
         self.int_constructor = {
                                 'ipg'  : ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_proc,)),
                                 'ipa'  : ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_proc,)),
+                                'pa'   : ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_proc,)),
+                                'pg'   : ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_proc,)),
                                 'ad'   : ('%s `%s`.`%s` %s ') % self.itpl,
+                                'thist': ('%s `%s`.`%s` %s ') % self.itpl,
+                                'ainf' : ('%s `%s`.`%s` %s ') % self.itpl,
                                 'att'  : ('%s `%s`.`%s` %s ') % self.itpl,
                                 'fee_m': ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_year,)),
                                 'fee_d': ('%s `%s`.`%s` %s %s') % (self.itpl + ('STORED AS PARQUET',))

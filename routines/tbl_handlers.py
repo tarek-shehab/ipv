@@ -18,8 +18,8 @@ def init_models(mtype):
     else: raise Exception('Tables type is incorrect!')
 
 def init_tables(ttype):
-#    if True:
-    try:
+    if True:
+#    try:
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
         modules = init_models(ttype)
@@ -30,10 +30,10 @@ def init_tables(ttype):
         impala_cur.close()
         impala_con.close() 
         return True
-    except Exception as err:
-        logging.error('Tables initialization failed!')
-        logging.error(err)
-        return False
+#    except Exception as err:
+#        logging.error('Tables initialization failed!')
+#        logging.error(err)
+#        return False
 
 def show_tables(ttype):
     modules = init_models(ttype)
@@ -50,20 +50,20 @@ def load_tables(properties):
 
     modules = init_models(properties['f_type'])
 
-#    if True:
-    try:
+    if True:
+#    try:
         if not init_tables(properties['f_type']): raise Exception()
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
 
         for mod in models[properties['f_type']]:
             table_name = modules[mod].model.get_table_name()
-            target_path = ('/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
+            target_path = ('hdfs://Big-Server7:8020/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
             print target_path
-            if properties['f_type'] in ['att', 'ad']:
+            if properties['f_type'] in ['att', 'ad', 'thist', 'ainf']:
                 insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', table_name, 'ipv_ext', table_name)
-            elif properties['f_type'] in ['ipa', 'ipg']:
+            elif properties['f_type'] in ['ipa', 'ipg', 'pa', 'pg']:
                 insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (proc_date=\'%s\') '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', table_name, properties['proc_date'],
                                                             'ipv_ext',table_name)
@@ -91,7 +91,7 @@ def load_tables(properties):
         impala_cur.close()
         impala_con.close()
         return True
-    except Exception as err:
-        logging.error('Tables loading failed!')
-        logging.error(err)
-        return False
+#    except Exception as err:
+#        logging.error('Tables loading failed!')
+#        logging.error(err)
+#        return False

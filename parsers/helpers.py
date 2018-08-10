@@ -17,7 +17,7 @@ def get_value(arg):
             tail = elm.tail if (elm is not None and elm.tail is not None) else "-"
             res.extend([head,tail])
         return ' '.join(res)
-    else: return arg.text if (arg is not None and arg.text is not None) else "-"
+    else: return arg.text.replace('\n',' ').strip() if (arg is not None and arg.text is not None) else "-"
 
 
 
@@ -28,6 +28,17 @@ def get_parts(xml_part, parts_tag, app_num_tag):
     app_num = xml.find(app_num_tag).text
 
     parts = xml.findall(parts_tag)
+
+    return [parts, app_num]
+
+def get_multi_parts(xml_part, parts_tag, app_num_tag):
+
+    xml = ET.fromstring(xml_part)
+
+    app_num = xml.find(app_num_tag).text
+
+    parts = []
+    for part in parts_tag: parts.extend(xml.findall(part))
 
     return [parts, app_num]
 
@@ -53,8 +64,36 @@ def extract(xml_part, to_extract, parts_tag, app_num_tag):
         logging.error(err)
         return False
 
+def multi_extract(xml_part, to_extract, parts_tag, app_num_tag):
+    if True:
+#    try:
+        args = get_multi_parts(xml_part, parts_tag, app_num_tag)
+        parts = args[0]
+        app_num = args[1]
+        if len(parts) != 0:
+            result = ''
+            for elm in parts:
+                res_list = [app_num]
+                for e_part in to_extract:
+                    for tag in e_part:
+                        ct = elm.find(tag)
+                        res = get_value(ct)
+                        if res != '-': break
+
+                    res_list.append(res)
+
+                result += u"\t".join(res_list).encode('utf-8').strip()+"\n"
+            return result
+
+        else: return False
+#    except Exception as err:
+#        logging.error('General parser error!')
+#        logging.error(err)
+#        return False
+
 def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
-    try:
+    if True:
+#    try:
         args = get_parts(xml_part, parts_tag, app_num_tag)
         parts = args[0]
         app_num = args[1]
@@ -73,10 +112,34 @@ def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
             return result
 
         else: return False
-    except Exception as err:
-        logging.error('W-parser error!')
-        logging.error(err)
-        return False
+#    except Exception as err:
+#        logging.error('W-parser error!')
+#        logging.error(err)
+#        return False
+
+def w_old_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
+    if True:
+#    try:
+        args = get_parts(xml_part, parts_tag, app_num_tag)
+        parts = args[0]
+        app_num = args[1]
+
+        if len(parts) != 0:
+            result = ''
+            for elm in parts:
+                res_list = [app_num, '-']
+                for tag in to_extract:
+                    ct = elm.find(tag)
+                    res_list.append(get_value(ct))
+                result += u"\t".join(res_list).encode('utf-8').strip() +"\n"
+            return result
+
+        else: return False
+#    except Exception as err:
+#        logging.error('W-parser error!')
+#        logging.error(err)
+#        return False
+
 
 def get_class(arg):
 
