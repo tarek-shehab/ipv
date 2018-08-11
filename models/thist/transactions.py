@@ -9,11 +9,13 @@ body   =   ('(app_id BIGINT,'
             'record_date STRING,'
             'code STRING,'
             'description STRING,'
-            'PRIMARY KEY(app_id, record_date)) PARTITION BY HASH(app_id) PARTITIONS 64 STORED AS KUDU ')
+            'proc_date STRING,'
+            'PRIMARY KEY(app_id, record_date, code)) PARTITION BY HASH(app_id) PARTITIONS 64 STORED AS KUDU ')
 
 body_ext =   ('(app_id BIGINT,'
             'record_date STRING,'
             'code STRING,'
-            'description STRING) ')
+            'description STRING,'
+            'proc_date STRING) ')
 
 model = helpers.tbl_model(table, [body, body_ext])

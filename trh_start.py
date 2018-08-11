@@ -23,16 +23,22 @@ from datetime import datetime
 from datetime import timedelta
 from impala.dbapi import connect
 import importlib
+from multiprocessing import Value, Array
 
 def write_local(arr,name):
     res = ''
     for elm in arr:
         res += u"\t".join(elm).encode('utf-8').strip()+"\n"
-    with open('./source/temp/' + name, 'w') as fl:
+    with open(name, 'w') as fl:
        fl.write(res)
 
-@retry(wait_exponential_multiplier=10, wait_exponential_max=5000, stop_max_delay=50000)
+@retry(wait_exponential_multiplier=10, wait_exponential_max=5000, stop_max_delay=60000)
 def get_data(app_id):
+    global retries, failed_ids, no_info, no_thist, ni_ind, nh_ind, sind, progress, cur, dec
+    if cur.value == dec.value:
+        cur.value = 0
+        progress.value += 1
+        logger.info(('%s Completed\n') % (str(progress.value * 10)))
     try:
         headers = {'User-Agent': ua.custom_user_agent[random.randint(0,len(ua.custom_user_agent)-1)],
                    'Content-Type': 'application/json',
@@ -63,11 +69,29 @@ def get_data(app_id):
                     buf = []
                     for k in keys: buf.append(he.get(k, '-'))
                     pool.append(buf)
+            else:
+                no_thist[nh_ind.value] = int(app_id)
+                nh_ind.value += 1
             res.append(pool)
+        else:
+            no_info[ni_ind.value] = int(app_id)
+            ni_ind.value += 1
+
+        cur.value += 1
         return res
     except Exception as err:
-        logging.error(err)
+        retries.value += 1
+#        return []
+#        logging.error(err)
         raise Exception('Request failed'+str(err))
+
+def get_data_wrapper(app_id):
+    try:
+        return get_data(str(app_id))
+    except Exception:
+        failed_ids[fl_ind.value] = int(app_id if app_id else 0)
+        fl_ind.value += 1
+        return []
 
 def run_query(query):
     impala_con = connect(host='localhost')
@@ -83,7 +107,7 @@ def get_partitions():
     sql = ('SELECT distinct proc_date from '
            '`ipv_db`.`application_main` '
            'WHERE proc_date >= \'%s\'') % (start_date)
-    return run_query(sql)
+    return [ids[0] for ids in run_query(sql)]
 
 def get_ids(partition):
     sql = ('SELECT distinct app_id FROM '
@@ -95,27 +119,31 @@ def start_pool(ids):
     start = time.time()
     logging.info(('Numbers of appIds in partition: %s') % (str(len(ids))))
     pool = Pool(processes=10)
-    results = pool.map(get_data, ids)
+    results = pool.map(get_data_wrapper, ids)
     pool.close()
     pool.join()
     logging.info(('Ids processing completed %s sec') % (str(round(time.time()-start, 2))))
     return [res for res in results if res]
 
-def split_result(result):
+def split_result(result, partition):
     info_pool = []
     trh_pool = []
     for elm in result:
-        info_pool.extend([elm[:6]])
+        info_pool.extend([elm[:6] + [partition]])
         for tr in elm[-1]:
-            trh_pool.extend([[elm[0]] + tr])
+            trh_pool.extend([[elm[0]] + tr + [partition]])
     info_res = ''
     trh_res = ''
 
     for elm in info_pool: info_res += u"\t".join(elm).encode('utf-8').strip()+"\n"
     for elm in trh_pool: trh_res += u"\t".join(elm).encode('utf-8').strip()+"\n"
-    print info_res
-    
-    return {'ainf': info_res, 'thist': trh_res}
+
+    return {
+        'ainf': info_res,
+        'thist': trh_res,
+        'ainf_len': len(info_pool),
+        'thist_len': len(trh_pool)
+        }
 
 #############################################################################
 if __name__ == "__main__":
@@ -134,6 +162,7 @@ if __name__ == "__main__":
         '29440330','29452829'
         ]
 
+
     ids = ids
     t = time.time()
     i = 0
@@ -148,12 +177,24 @@ if __name__ == "__main__":
         tbl.init_tables(model)
 
 
-#    for partition in get_partitions():
-    for partition in [1]:
+    for partition in get_partitions():
+#    for partition in [1]:
+
+        failed_ids = Array('i',20000)
+        retries = Value('i',0)
+        no_info = Array('i',20000)
+        no_thist = Array('i',20000)
+        fl_ind = Value('i',0)
+        ni_ind = Value('i',0)
+        nh_ind = Value('i',0)
+        progress = Value('i',0)
+        dec = Value('i',0)
+        cur = Value('i',0)
         start = time.time()
         logging.info(('Start processing partition: %s') % (partition))
-#        final = split_result(start_pool(get_ids(partition)))
-        final = split_result(start_pool(ids))
+        ids = get_ids(partition)
+        dec.value = len(ids) // 10
+        final = split_result(start_pool(ids), partition)
         parser.set_env()
         hdfs_conn = parser.hdfs_connect()
         for model in models:
@@ -167,7 +208,28 @@ if __name__ == "__main__":
             parser.set_impala_permissions(cfg.hdfs_base_dir)
             tbl.load_tables(properties)
         hdfs_conn.close()
+        logging.info(('STAT: Partition                =  %s') % (partition))
+        logging.info(('STAT: Total Ids in partition   =  %s') % (str(len(ids))))
+        logging.info(('STAT: Total Ids extracted      =  %s') % (str(final['ainf_len'])))
+        logging.info(('STAT: Total tr.history records =  %s') % (str(final['thist_len'])))
+        logging.info(('STAT: Numbers of retries       =  %s') % (str(retries.value)))
+        logging.info(('STAT: Failed Ids numbers       =  %s') % (str(len([1 for e in failed_ids if e != 0]))))
+        logging.info(('STAT: Ids with no app.info     =  %s') % (str(len([1 for e in no_info if e != 0]))))
+        logging.info(('STAT: Ids with no tr.history   =  %s') % (str(len([1 for e in no_thist if e != 0]))))
+        logging.info(('STAT: Average req/sec. ratey   =  %s') % (str(round(len(ids)/(time.time()-start), 2))))
+
+        res_path = './log/thist/'
+        marker = str(int(time.time()))
+        logarr = {
+            'failed_ids': failed_ids,
+            'no_info': no_info,
+            'no_thist': no_thist
+            }
+        for elm in logarr:
+            name = ('%s%s_%s.txt') % (res_path, elm, partition)
+            write_local([[str(e)] for e in logarr[elm] if e != 0], name)
+
 
         logging.info(('Partition processing completed in %s sec') % (str(round(time.time()-start, 2))))
-
+        break
     logging.info(('Overall processin time: %s sec') % (str(round(time.time()-t, 2))))

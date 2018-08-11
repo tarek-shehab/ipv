@@ -59,7 +59,7 @@ def load_tables(properties):
         for mod in models[properties['f_type']]:
             table_name = modules[mod].model.get_table_name()
             target_path = ('hdfs://Big-Server7:8020/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
-            print target_path
+#            print target_path
             if properties['f_type'] in ['att', 'ad', 'thist', 'ainf']:
                 insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', table_name, 'ipv_ext', table_name)
@@ -82,8 +82,8 @@ def load_tables(properties):
 
 #            refresh = ('INVALIDATE METADATA `%s`.`%s`') % ('ipv_ext', table_name)
 #            impala_cur.execute(refresh)
-            print load_sql
-            print insert_sql
+#            print load_sql
+#            print insert_sql
             impala_cur.execute(load_sql)
             logging.info(('Data has successfully loaded into temporary table: %s!') % (table_name))
             impala_cur.execute(insert_sql)
