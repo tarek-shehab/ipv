@@ -102,11 +102,16 @@ def run_query(query):
     impala_con.close()
     return result
 
-def get_partitions():
+def get_partitions(year):
     start_date = str(datetime.now() - timedelta(days=35))[:10].replace('-','')
-    sql = ('SELECT distinct proc_date from '
+#    start_date = '2017'
+    start_date = year
+#    sql = ('SELECT distinct proc_date from '
+#           '`ipv_db`.`application_main` '
+#           'WHERE proc_date >= \'%s\'') % (start_date)
+    sql = ('SELECT distinct proc_date AS pd from '
            '`ipv_db`.`application_main` '
-           'WHERE proc_date >= \'%s\'') % (start_date)
+           'WHERE SUBSTR(proc_date,1,4) = \'%s\' ORDER BY pd') % (start_date)
     return [ids[0] for ids in run_query(sql)]
 
 def get_ids(partition):
@@ -145,6 +150,18 @@ def split_result(result, partition):
         'thist_len': len(trh_pool)
         }
 
+def get_tasks():
+    tasks = {'192.168.250.11' :['2006','2007'],
+             '192.168.250.12' :['2008','2009'],
+             '192.168.250.13' :['2010','2011'],
+             '192.168.250.15' :['2012','2013'],
+             '192.168.250.16' :['2014','2015'],
+             '192.168.250.17' :['2016',],
+             '192.168.250.19' :['2017',],
+             '192.168.250.20' :['2018',],
+            }
+    return tasks.get(socket.gethostbyname(socket.gethostname()))
+
 #############################################################################
 if __name__ == "__main__":
 
@@ -165,6 +182,7 @@ if __name__ == "__main__":
 
     ids = ids
     t = time.time()
+    parser.set_env()
     i = 0
     properties = {'proc_date': str(datetime.now())[:10].replace('-','')}
 
@@ -177,8 +195,7 @@ if __name__ == "__main__":
         tbl.init_tables(model)
 
 
-    for partition in get_partitions():
-#    for partition in [1]:
+    for partition in get_partitions('2017'):
 
         failed_ids = Array('i',20000)
         retries = Value('i',0)
@@ -195,7 +212,6 @@ if __name__ == "__main__":
         ids = get_ids(partition)
         dec.value = len(ids) // 10
         final = split_result(start_pool(ids), partition)
-        parser.set_env()
         hdfs_conn = parser.hdfs_connect()
         for model in models:
             for table in models[model]:
@@ -231,5 +247,5 @@ if __name__ == "__main__":
 
 
         logging.info(('Partition processing completed in %s sec') % (str(round(time.time()-start, 2))))
-        break
+#        break
     logging.info(('Overall processin time: %s sec') % (str(round(time.time()-t, 2))))

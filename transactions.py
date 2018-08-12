@@ -25,7 +25,7 @@ if __name__ == "__main__":
     headers = {'User-Agent': ua.custom_user_agent[random.randint(0,len(ua.custom_user_agent)-1)],
                'Content-Type': 'application/json',
                'Accept': 'application/json'}
-    api_call = '{\"searchText\":\"10200597\",\"qf\":\"applId\"}'
+    api_call = '{\"searchText\":\"15925062\",\"qf\":\"applId\"}'
     url = 'https://ped.uspto.gov/api/queries'
     api_content = json.loads(requests.post(url, data=api_call, headers=headers, timeout = 5).text)
     pp.pprint(api_content)

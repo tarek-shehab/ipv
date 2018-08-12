@@ -9,6 +9,7 @@ body   =   ('(app_id BIGINT,'
             'record_date STRING,'
             'code STRING,'
             'description STRING,'
+            'events_count BIGINT,'
             'proc_date STRING,'
             'PRIMARY KEY(app_id, record_date, code)) PARTITION BY HASH(app_id) PARTITIONS 64 STORED AS KUDU ')
 

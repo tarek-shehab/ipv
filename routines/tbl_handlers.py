@@ -60,9 +60,16 @@ def load_tables(properties):
             table_name = modules[mod].model.get_table_name()
             target_path = ('hdfs://Big-Server7:8020/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
 #            print target_path
-            if properties['f_type'] in ['att', 'ad', 'thist', 'ainf']:
+            if properties['f_type'] in ['att', 'ad', 'ainf']:
                 insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', table_name, 'ipv_ext', table_name)
+            elif properties['f_type'] == 'thist':
+                insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '
+                              'SELECT app_id, record_date, code, description,'
+                              'count(*) AS events_count, proc_date  FROM `%s`.`%s` '
+                              'GROUP BY app_id, record_date, code, '
+                              'description, proc_date') % ('ipv_db', table_name, 'ipv_ext', table_name)
+
             elif properties['f_type'] in ['ipa', 'ipg', 'pa', 'pg']:
                 insert_sql = ('INSERT OVERWRITE TABLE `%s`.`%s` PARTITION (proc_date=\'%s\') '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', table_name, properties['proc_date'],
