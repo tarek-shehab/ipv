@@ -111,7 +111,8 @@ def parse_xml(*args):
 #                print part
 #                print err
 #        try:
-        pool = Pool(processes = 5, maxtasksperchild=1000)
+#        pool = Pool(processes = 5, maxtasksperchild=1000)
+        pool = Pool(processes = 1, maxtasksperchild=1000)
         results = pool.map(modules[mod].create_line, xml)
 #
         pool.close()

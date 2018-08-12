@@ -43,8 +43,8 @@ def create_line(xml_part):
         if tag == ".//rule-47-flag":
             if ct is not None:
                 res_list.append('True')
-#            else: res_list.append('False')
-            else: res_list.append('-')
+            else: res_list.append('False')
+#            else: res_list.append('-')
         else:
             res_list.append(helpers.get_value(ct))
 
