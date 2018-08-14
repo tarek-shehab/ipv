@@ -13,6 +13,8 @@ import routines.ldr_handlers as loader
 import routines.tbl_handlers as tbl
 import routines.wpr_handlers as parser
 import routines.lnk_handlers as lnk
+from routines.send_mail import send_mail
+
 from datetime import datetime
 import argparse
 
@@ -63,7 +65,7 @@ def parse_proc(year, ftype, all_files=None):
         if tbl.load_tables(parser.parse(source_dir + fl)):
             if not os.path.exists(processed_dir):
                 os.makedirs(processed_dir)
-#            os.rename(source_dir + fl, processed_dir + fl)
+            os.rename(source_dir + fl, processed_dir + fl)
             logging.info(('File %s successfully parsed and loaded into Impala table in %s sec.') % (fl,
                           str(round(time.time()-stime,2))))
         else:
@@ -71,11 +73,43 @@ def parse_proc(year, ftype, all_files=None):
 
         logging.info(('Total processing time: %s') % (str(round(time.time()-stime,2))))
 
+def get_mail_params(ftype, mode, rfile):
+    with open(rfile, 'r') as fl:
+        text = fl.readlines()
+        text = ''.join(text)
+    mode_map = {
+        'load' : 'loading',
+        'parse': 'parsing'
+        }
+
+    type_map = {
+        'ipg': 'Grant XML',
+        'ipa': 'Application XML',
+        'ad' : 'Assignments XML',
+        'fee': 'Transactions fee TXT',
+        'att': 'Attorney TXT',
+        'pg' : '(Old) grant XML',
+        'pa' : '(Old) application XML'
+        }
+
+    mail_params =   {
+        'server'   : 'mail.gandi.net',
+        'username' : 'reports@taikitech.com',
+        'password' : 'reportdaemon',
+        'send_from': 'reports@taikitech.com',
+        'send_to'  : ['support@taikitech.com',],
+        'text'     : text,
+        'subject'  : ('%s file %s report') % (type_map[ftype], mode_map[mode]),
+#        'files'    : []
+#        'files'    : [out_file_xlsx]
+        }
+    return mail_params
+
 #############################################################################
 if __name__ == "__main__":
 
-#    try:
-    if True:
+    try:
+#    if True:
         descr = ('IPV Patent information files Downloader&Parser v0.1\n'
                  'Author: Alex Kovalsky')
         arg_parser = argparse.ArgumentParser(description=descr)
@@ -101,28 +135,32 @@ if __name__ == "__main__":
 
         args = arg_parser.parse_args()
 
+        log_file_name = ('./log/%s_%s_%s.log') % (args.type,
+                                               args.mode,
+                                               str(datetime.now())[2:19].replace(' ','_'))
 
-#        logging.basicConfig(filename=('./log/%s_%s.log') % (args.type, args.mode),
-#                            format='[%(asctime)s] %(levelname)s: %(message)s',
-#                            level=logging.INFO)
         logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s',
                             level=logging.INFO)
 
-#        target_year = datetime.now().year
-        target_year = '2002'
+        logFormatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+        rootLogger = logging.getLogger()
+
+        fileHandler = logging.FileHandler(log_file_name)
+        fileHandler.setFormatter(logFormatter)
+        rootLogger.addHandler(fileHandler)
 
         arg = (args.year, args.type, args.full)
 
         proc = {'load' : load_proc,
                 'parse': parse_proc}
-
         if args.init_databases: dbs.init_dbs()
         if args.init_tables: tbl.init_tables(args.type)
 
         proc[args.mode](*arg)
 
-#    except Exception as error:
-#        logging.error('Failed to process!')
-#        logging.error(error)
-#        quit(1)
+    except Exception as error:
+        logging.error('Failed to process!')
+        logging.error(error)
 
+    finally:
+        send_mail(get_mail_params(args.type, args.mode, log_file_name))

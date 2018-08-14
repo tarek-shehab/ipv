@@ -111,8 +111,8 @@ def parse_xml(*args):
 #                print part
 #                print err
 #        try:
-#        pool = Pool(processes = 5, maxtasksperchild=1000)
-        pool = Pool(processes = 1, maxtasksperchild=1000)
+        pool = Pool(processes = 5, maxtasksperchild=1000)
+#        pool = Pool(processes = 1, maxtasksperchild=1000)
         results = pool.map(modules[mod].create_line, xml)
 #
         pool.close()
@@ -176,7 +176,7 @@ def parse_att(*args):
         logging.error(('Incorrect file name') % (file_name))
         return False
     short_name = os.path.basename(file_name)
-    updated = str(datetime.now())[:10]
+    updated = str(datetime.now())[:10].replace('-','')
     try:
         start = time.time()
         fstart = start

@@ -195,7 +195,7 @@ if __name__ == "__main__":
         tbl.init_tables(model)
 
 
-    for partition in get_partitions('2018'):
+    for partition in get_partitions('2012'):
 
         failed_ids = Array('i',20000)
         retries = Value('i',0)

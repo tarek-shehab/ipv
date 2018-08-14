@@ -128,5 +128,6 @@ dwl_links = {
     'pg' : 'https://bulkdata.uspto.gov/data/patent/grant/redbook/fulltext/',
     'ipa': 'https://bulkdata.uspto.gov/data/patent/application/redbook/fulltext/',
     'ad' : 'https://bulkdata.uspto.gov/data/patent/assignment/',
-    'fee': 'https://bulkdata.uspto.gov/data/patent/maintenancefee/MaintFeeEvents.zip'
+    'fee': 'https://bulkdata.uspto.gov/data/patent/maintenancefee/MaintFeeEvents.zip',
+    'att': 'http://www.uspto.gov/attorney-roster/attorney.zip'
     }

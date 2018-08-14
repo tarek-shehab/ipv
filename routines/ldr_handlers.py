@@ -25,7 +25,7 @@ def f_get(url, target):
         if not os.path.exists(target):
             os.makedirs(target)
         meta = urllib.urlopen(url).info()
-        print meta
+#        print meta
         size = int(meta.getheaders("Content-Length")[0])
 
         if size < 1000:

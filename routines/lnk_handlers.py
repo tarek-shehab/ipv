@@ -42,6 +42,7 @@ def get_links_list(year, ftype):
             elif ftype in ['pg','pa']: res.append(durl_prefix + fl[2:4] + '/' + fl)
             else:res.append(durl_prefix + fl[3:5] + '/' + fl)
 
+    print res
     return res if len(res) > 0 else False
 
 
@@ -50,20 +51,21 @@ def get_links(year, ftype, full_list=None):
     if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
     links = get_links_list(year, ftype)
     if not links: raise Exception('No links were extracted for this year')
-    print links
+#    print links
     res = []
     if not full_list:
-        tbl_preffix = {'ipg':'grant',
-                       'ipa':'application',
-                        'ad':'assignment',
-                        'fee':'mfee'}[ftype]
+        tbl_preffix = {'ipg' :'grant',
+                       'ipa' :'application',
+                        'ad' :'assignment',
+                        'att':'attorney',
+                        'fee':'fee'}[ftype]
 
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
-        if ftype in ['ipg', 'ipa']:
+        if ftype in ['ipg', 'ipa', 'pg', 'pa', 'fee']:
             query = ('SELECT DISTINCT proc_date FROM `ipv_db`.`%s_main` WHERE SUBSTR(proc_date,1,4) = \'%s\'') % (tbl_preffix, year)
-        elif ftype in ['fee','att']:
-            query = ('SELECT last_update FROM `ipv_db`.`%s` LIMIT 1') % (tbl_preffix)
+        elif ftype in ['att']:
+            query = ('SELECT updated FROM `ipv_db`.`%s` LIMIT 1') % (tbl_preffix)
         else:
             query = ('SELECT DISTINCT last_update FROM `ipv_db`.`%s_main` WHERE SUBSTR(last_update,1,4) = \'%s\'') % (tbl_preffix, year)
 
