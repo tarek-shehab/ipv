@@ -62,7 +62,7 @@ def parse_proc(year, ftype, all_files=None):
         stime = time.time()
 #        parser.parse(source_dir + fl)
 #        continue
-        if tbl.load_tables(parser.parse(source_dir + fl)):
+        if tbl.load_tables(parser.parse(source_dir + fl), False):
             if not os.path.exists(processed_dir):
                 os.makedirs(processed_dir)
             os.rename(source_dir + fl, processed_dir + fl)
