@@ -43,7 +43,7 @@ def show_tables(ttype):
         print modules[mod].model.get_ext_schema(ttype)
         print '###################################################################################'
 
-def load_tables(properties):
+def load_tables(properties,t_init=True):
     if (not properties) or properties['f_type'] not in list(models.keys()):
        logging.error('Incorrect argument for tables loader!')
        return False
@@ -52,13 +52,15 @@ def load_tables(properties):
 
     if True:
 #    try:
-        if not init_tables(properties['f_type']): raise Exception()
+        if t_init:
+            if not init_tables(properties['f_type']): raise Exception()
         impala_con = connect(host='localhost')
         impala_cur = impala_con.cursor()
-
+        print 3
         for mod in models[properties['f_type']]:
             table_name = modules[mod].model.get_table_name()
-            target_path = ('hdfs://Big-Server7:8020/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
+            target_path = ('hdfs://nameservice1/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
+#            target_path = ('/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
 #            print target_path
             if properties['f_type'] in ['att', 'ad', 'ainf']:
                 insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '

@@ -111,7 +111,7 @@ def get_partitions(year):
 #           'WHERE proc_date >= \'%s\'') % (start_date)
     sql = ('SELECT distinct proc_date AS pd from '
            '`ipv_db`.`application_main` '
-           'WHERE SUBSTR(proc_date,1,4) = \'%s\' ORDER BY pd') % (start_date)
+           'WHERE SUBSTR(proc_date,1,4) = \'%s\' AND proc_date >= \'20110421\' ORDER BY pd') % (start_date)
     return [ids[0] for ids in run_query(sql)]
 
 def get_ids(partition):
@@ -191,11 +191,12 @@ if __name__ == "__main__":
 
     models = {key: models[key] for key in ['thist','ainf']}
 
-    for model in models:
-        tbl.init_tables(model)
+#    for model in models:
+#        tbl.init_tables(model)
 
 
-    for partition in get_partitions('2012'):
+    for partition in get_partitions('2011'):
+#    for partition in range(1):
 
         failed_ids = Array('i',20000)
         retries = Value('i',0)
@@ -212,6 +213,7 @@ if __name__ == "__main__":
         ids = get_ids(partition)
         dec.value = len(ids) // 10
         final = split_result(start_pool(ids), partition)
+#        final = split_result(start_pool(ids), '20180101')
         hdfs_conn = parser.hdfs_connect()
         for model in models:
             for table in models[model]:
@@ -222,7 +224,7 @@ if __name__ == "__main__":
 
             properties['f_type'] = model
             parser.set_impala_permissions(cfg.hdfs_base_dir)
-            tbl.load_tables(properties)
+            tbl.load_tables(properties, False)
         hdfs_conn.close()
         logging.info(('STAT: Partition                =  %s') % (partition))
         logging.info(('STAT: Total Ids in partition   =  %s') % (str(len(ids))))
