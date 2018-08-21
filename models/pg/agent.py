@@ -4,7 +4,7 @@ helpers = importlib.import_module('.helpers', 'models')
 ######################################################################
 #
 ######################################################################
-table  = 'old_grant_agent'
+table  = 'grant_agent'
 
 body   =   ('(`app_id` BIGINT,'
              '`agent_type` STRING,'

@@ -4,7 +4,7 @@ helpers = importlib.import_module('.helpers', 'models')
 ######################################################################
 #
 ######################################################################
-table  = 'old_grant_related'
+table  = 'grant_related'
 
 body   =   ('(app_id BIGINT,'
             'country STRING,'
