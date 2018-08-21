@@ -109,15 +109,25 @@ def get_partitions(year):
 #    sql = ('SELECT distinct proc_date from '
 #           '`ipv_db`.`application_main` '
 #           'WHERE proc_date >= \'%s\'') % (start_date)
-    sql = ('SELECT distinct proc_date AS pd from '
-           '`ipv_db`.`application_main` '
-           'WHERE SUBSTR(proc_date,1,4) = \'%s\' AND proc_date >= \'20110421\' ORDER BY pd') % (start_date)
+#    sql = ('SELECT distinct proc_date AS pd from '
+#           '`ipv_db`.`old_application_main` '
+#           'WHERE SUBSTR(proc_date,1,4) = \'%s\' ORDER BY pd') % (start_date)
+#           'WHERE SUBSTR(proc_date,1,4) = \'%s\' AND proc_date >= \'20050303\' ORDER BY pd') % (start_date)
+    sql = ('SELECT distinct t0.proc_date as prd from `ipv_db`.`grant_main` t0 '
+           'LEFT OUTER JOIN `ipv_db`.`tr_history` t1 on t1.app_id = t0.app_id '
+           'WHERE t1.app_id is null and substr(t0.proc_date,1,4) BETWEEN \'2005\' AND \'2014\' '
+           ' AND t0.proc_date <= \'20131217\' ORDER BY prd DESC')
+#           'WHERE t1.app_id is null and substr(t0.proc_date,1,4) = \'%s\' ORDER BY prd DESC') % (start_date)
+
     return [ids[0] for ids in run_query(sql)]
 
 def get_ids(partition):
-    sql = ('SELECT distinct app_id FROM '
-           '`ipv_db`.`application_main` '
-           'WHERE proc_date = \'%s\'') % (partition)
+    sql = ('SELECT distinct t0.app_id FROM `ipv_db`.`grant_main` t0 '
+           'LEFT OUTER JOIN `ipv_db`.`tr_history` t1 on t1.app_id = t0.app_id '
+           'WHERE t1.app_id is null and t0.proc_date = \'%s\'') % (partition)
+#    sql = ('SELECT distinct app_id FROM '
+#           '`ipv_db`.`old_application_main` '
+#           'WHERE proc_date = \'%s\'') % (partition)
     return [ids[0] for ids in run_query(sql)]
 
 def start_pool(ids):
@@ -195,7 +205,7 @@ if __name__ == "__main__":
 #        tbl.init_tables(model)
 
 
-    for partition in get_partitions('2011'):
+    for partition in get_partitions('2016'):
 #    for partition in range(1):
 
         failed_ids = Array('i',20000)
@@ -234,7 +244,7 @@ if __name__ == "__main__":
         logging.info(('STAT: Failed Ids numbers       =  %s') % (str(len([1 for e in failed_ids if e != 0]))))
         logging.info(('STAT: Ids with no app.info     =  %s') % (str(len([1 for e in no_info if e != 0]))))
         logging.info(('STAT: Ids with no tr.history   =  %s') % (str(len([1 for e in no_thist if e != 0]))))
-        logging.info(('STAT: Average req/sec. ratey   =  %s') % (str(round(len(ids)/(time.time()-start), 2))))
+        logging.info(('STAT: Average req/sec. rate    =  %s') % (str(round(len(ids)/(time.time()-start), 2))))
 
         res_path = './log/thist/'
         marker = str(int(time.time()))
@@ -250,4 +260,4 @@ if __name__ == "__main__":
 
         logging.info(('Partition processing completed in %s sec') % (str(round(time.time()-start, 2))))
 #        break
-    logging.info(('Overall processin time: %s sec') % (str(round(time.time()-t, 2))))
+    logging.info(('Overall processing time: %s sec') % (str(round(time.time()-t, 2))))
