@@ -60,7 +60,7 @@ def get_links(year, ftype, full_list=None):
                         'att':'attorney',
                         'fee':'fee'}[ftype]
 
-        impala_con = connect(host='localhost')
+        impala_con = connect(host=cfg.impala_host)
         impala_cur = impala_con.cursor()
         if ftype in ['ipg', 'ipa', 'pg', 'pa', 'fee']:
             query = ('SELECT DISTINCT proc_date FROM `ipv_db`.`%s_main` WHERE SUBSTR(proc_date,1,4) = \'%s\'') % (tbl_preffix, year)

@@ -7,6 +7,7 @@ import logging
 import os
 
 models = importlib.import_module('.cfg', 'config').active_models
+cfg = importlib.import_module('.cfg', 'config')
 
 def init_models(mtype):
     tlist = []
@@ -20,7 +21,7 @@ def init_models(mtype):
 def init_tables(ttype):
 #    if True:
     try:
-        impala_con = connect(host='localhost')
+        impala_con = connect(host=cfg.impala_host)
         impala_cur = impala_con.cursor()
         modules = init_models(ttype)
         for mod in modules:
@@ -54,7 +55,7 @@ def load_tables(properties,t_init=True):
     try:
         if t_init:
             if not init_tables(properties['f_type']): raise Exception()
-        impala_con = connect(host='localhost')
+        impala_con = connect(host=cfg.impala_host)
         impala_cur = impala_con.cursor()
         for mod in models[properties['f_type']]:
             table_name = modules[mod].model.get_table_name()

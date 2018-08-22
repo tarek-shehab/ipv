@@ -132,3 +132,4 @@ dwl_links = {
     'fee': 'https://bulkdata.uspto.gov/data/patent/maintenancefee/MaintFeeEvents.zip',
     'att': 'http://www.uspto.gov/attorney-roster/attorney.zip'
     }
+impala_host = '192.168.250.11'
