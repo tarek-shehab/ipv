@@ -14,7 +14,7 @@ import routines.tbl_handlers as tbl
 import routines.wpr_handlers as parser
 import routines.lnk_handlers as lnk
 from routines.send_mail import send_mail
-
+from config import cfg
 from datetime import datetime
 import argparse
 
@@ -60,8 +60,6 @@ def parse_proc(year, ftype, all_files=None):
     logging.info(('Found %s files to process') % (len(flist)))
     for fl in flist:
         stime = time.time()
-#        parser.parse(source_dir + fl)
-#        continue
         if tbl.load_tables(parser.parse(source_dir + fl), False):
             if not os.path.exists(processed_dir):
                 os.makedirs(processed_dir)
@@ -92,17 +90,15 @@ def get_mail_params(ftype, mode, rfile):
         'pa' : '(Old) application XML'
         }
 
-    mail_params =   {
-        'server'   : 'mail.gandi.net',
-        'username' : 'reports@taikitech.com',
-        'password' : 'reportdaemon',
-        'send_from': 'reports@taikitech.com',
-        'send_to'  : ['support@taikitech.com',],
+    mail_params =  cfg.mail_params
+
+    var_params  = {
         'text'     : text,
         'subject'  : ('%s file %s report') % (type_map[ftype], mode_map[mode]),
-#        'files'    : []
-#        'files'    : [out_file_xlsx]
         }
+
+    mail_params.update(var_params)
+
     return mail_params
 
 #############################################################################
@@ -129,7 +125,7 @@ if __name__ == "__main__":
         arg_parser.add_argument("--init_databases", action='store_true',
                 help="Force databases initialization before processing")
 
-        if len(sys.argv)==1:
+        if len(sys.argv) == 1:
             arg_parser.print_help()
             sys.exit(1)
 
@@ -163,4 +159,5 @@ if __name__ == "__main__":
         logging.error(error)
 
     finally:
-        send_mail(get_mail_params(args.type, args.mode, log_file_name))
+        if len(sys.argv) != 1:
+            send_mail(get_mail_params(args.type, args.mode, log_file_name))

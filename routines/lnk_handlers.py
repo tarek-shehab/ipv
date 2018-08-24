@@ -42,7 +42,7 @@ def get_links_list(year, ftype):
             elif ftype in ['pg','pa']: res.append(durl_prefix + fl[2:4] + '/' + fl)
             else:res.append(durl_prefix + fl[3:5] + '/' + fl)
 
-    print res
+#    print res
     return res if len(res) > 0 else False
 
 
@@ -78,6 +78,7 @@ def get_links(year, ftype, full_list=None):
             meta = urllib.urlopen(links[0]).info()
             date = datetime.strptime(meta.getheaders('Last-Modified')[0],'%a, %d %b %Y %H:%M:%S %Z')
             date = datetime.strftime(date, '%Y%m%d')
+            print dates, date, links[:]
             if date[2:] not in dates: res = links[:]
         else:
             for elm in links:

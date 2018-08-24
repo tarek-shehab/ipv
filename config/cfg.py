@@ -132,4 +132,16 @@ dwl_links = {
     'fee': 'https://bulkdata.uspto.gov/data/patent/maintenancefee/MaintFeeEvents.zip',
     'att': 'http://www.uspto.gov/attorney-roster/attorney.zip'
     }
+
 impala_host = '192.168.250.11'
+
+mail_params =   {
+    'server'   : 'mail.gandi.net',
+    'username' : 'reports@taikitech.com',
+    'password' : 'reportdaemon',
+    'send_from': 'reports@taikitech.com',
+    'send_to'  : ['support@taikitech.com',],
+#    'text'     : text,
+#    'subject'  : ('%s file %s report') % (type_map[ftype], mode_map[mode]),
+#    'files'    : [out_file_xlsx]
+    }
