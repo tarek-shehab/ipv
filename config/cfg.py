@@ -59,7 +59,8 @@ active_models = {
     'ainf' :['add_info'],
     'att'  :['attorney'],
     'fee_m':['fee_main'],
-    'fee_d':['fee_descr']
+    'fee_d':['fee_descr'],
+    'phi'  :['ph_info']
     }
 
 active_parsers = {
@@ -140,7 +141,8 @@ mail_params =   {
     'username' : 'reports@taikitech.com',
     'password' : 'reportdaemon',
     'send_from': 'reports@taikitech.com',
-    'send_to'  : ['support@taikitech.com',],
+    'send_to'  : ['support@taikitech.com'],
+#    'send_to'  : ['support@taikitech.com', 'tarek.shehab@ipvisibility.com'],
 #    'text'     : text,
 #    'subject'  : ('%s file %s report') % (type_map[ftype], mode_map[mode]),
 #    'files'    : [out_file_xlsx]

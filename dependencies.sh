@@ -11,3 +11,4 @@ pip install lxml
 pip install requests
 pip install wget
 pip install retrying
+pip install selenium

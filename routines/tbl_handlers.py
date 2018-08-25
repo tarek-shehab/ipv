@@ -62,7 +62,7 @@ def load_tables(properties,t_init=True):
             target_path = ('hdfs://nameservice1/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
 #            target_path = ('/ipv/results/%s/%s/data%s.tsv') % (properties['f_type'], mod, properties['proc_date'])
 #            print target_path
-            if properties['f_type'] in ['att', 'ad', 'ainf']:
+            if properties['f_type'] in ['att', 'ad', 'ainf', 'phi']:
                 insert_sql = ('UPSERT INTO TABLE `%s`.`%s` '
                               'SELECT * FROM `%s`.`%s`') % ('ipv_db', table_name, 'ipv_ext', table_name)
             elif properties['f_type'] == 'thist':

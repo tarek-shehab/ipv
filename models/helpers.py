@@ -24,6 +24,7 @@ class tbl_model():
                                 'ad'   : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
                                 'att'  : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
                                 'thist': ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
+                                'phi'  : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
                                 'ainf' : ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab)),
                                 'fee_m': ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_space)),
                                 'fee_d': ('%s `%s`.`%s` %s %s') % (self.etpl + (self.body_ext, self.row_tab))
@@ -36,6 +37,7 @@ class tbl_model():
                                 'pg'   : ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_proc,)),
                                 'ad'   : ('%s `%s`.`%s` %s ') % self.itpl,
                                 'thist': ('%s `%s`.`%s` %s ') % self.itpl,
+                                'phi'  : ('%s `%s`.`%s` %s ') % self.itpl,
                                 'ainf' : ('%s `%s`.`%s` %s ') % self.itpl,
                                 'att'  : ('%s `%s`.`%s` %s ') % self.itpl,
                                 'fee_m': ('%s `%s`.`%s` %s %s') % (self.itpl + (self.part_year,)),
