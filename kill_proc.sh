@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for PID in `ps -ef | grep etl_start | awk '{print $2}'`
+for PID in `ps -ef | grep phi_start | awk '{print $2}'`
 do
     echo $PID
     kill -9 $PID

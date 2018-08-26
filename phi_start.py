@@ -2,33 +2,21 @@
 #############################################################################
 #
 #############################################################################
-import sys
 import time
 import logging
-import os
-import pprint
-import requests
-import random
-import json
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+#from selenium.webdriver.common.keys import Keys
+#from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from os import walk
-import routines.dbs_handlers as dbs
 import routines.tbl_handlers as tbl
 import routines.wpr_handlers as parser
 import routines.user_agents as ua
-from multiprocessing.dummy import Pool
-import multiprocessing
-#from multiprocessing import Pool
+from multiprocessing import Manager, Process
 from retrying import retry
-from lxml import etree
 from datetime import datetime
-from datetime import timedelta
 from impala.dbapi import connect
 import importlib
 from multiprocessing import Value, Array
@@ -66,7 +54,6 @@ def run_query(query):
 #############################################################################
 def get_partitions(years):
     years = ','.join(map(lambda arg: '\''+arg+'\'', years))
-    start_date = str(datetime.now() - timedelta(days=35))[:10].replace('-','')
 
     sql = ('SELECT DISTINCT t0.proc_date FROM `ipv_db`.grant_main t0 '
            'LEFT OUTER JOIN `ipv_db`.ph_info t1 '
@@ -87,7 +74,7 @@ def get_ids(partition):
            'ON t0.app_id = t1.app_id and t0.pub_ref_doc_number = t1.patent_no '
            'WHERE t1.app_id IS NULL and t1.patent_no '
            'IS NULL AND t0.proc_date = \'%s\'') % (partition)
-#           'IS NULL AND t0.proc_date = \'%s\' LIMIT 100') % (partition)
+#           'IS NULL AND t0.proc_date = \'%s\' LIMIT 5') % (partition)
 
     return [list(ids) for ids in run_query(sql)]
 
@@ -183,14 +170,15 @@ class Browser:
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument(('user-agent=%s') % (ua.get_user_agent()))
         self.driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=chrome_options,
                                   service_args=['--verbose', '--log-path=./log/chromedriver.log'])
         self.driver.set_window_size(1024, 1024)
 
-#    @retry(wait_exponential_multiplier=10, wait_exponential_max=5000, stop_max_delay=60000)
+    @retry(wait_exponential_multiplier=10, wait_exponential_max=5000, stop_max_delay=10000)
     def get_data(self, arg):
-        if True:
-#        try:
+#        if True:
+        try:
             app_id = str(arg[0])
             if len(app_id) > 8: return False
             else:
@@ -208,7 +196,8 @@ class Browser:
             target_link = ('https://fees.uspto.gov/MaintenanceFees/fees/details?'
                            'applicationNumber=%s&patentNumber=%s') % (app_id, patent_no)
 
-            print target_link
+            logging.info(('Request started for APP_ID: %s PATENT_NO: %s') % (arg[0], arg[1]))
+
             self.driver.get(target_link)
             wait = WebDriverWait(self.driver, 5)
             wait.until(wait_for_non_empty_text((By.XPATH, '//span[@data-dojo-attach-point="address"]')))
@@ -221,18 +210,17 @@ class Browser:
             address = self.driver.find_element_by_xpath('//span[@data-dojo-attach-point="address"]').text
             address = address.replace('\n', ' ')
             res.append(address)
-#            print 'res',res
             return res
 
-#        except Exception as err:
-#            st_data.retries.value += 1
-#            raise Exception('Request failed'+str(err))
+        except Exception as err:
+            st_data.retries.value += 1
+            raise Exception(('Request failed for APP_ID: %s PATENT_NO: %s') % (arg[0], arg[1]))
 
     def get_data_wrapper(self, arg):
         try:
             return self.get_data(arg)
         except Exception as err:
-            print err
+            logging.error(err)
             st_data.failed_ids = int(arg[0] if arg[0] else 0)
             return []
 
@@ -242,7 +230,7 @@ class Browser:
 #############################################################################
 #
 #############################################################################
-class Worker(multiprocessing.Process):
+class Worker(Process):
     def __init__(self, worker_num, task_q, result_q):
         super(Worker, self).__init__()
         self.worker_num = worker_num
@@ -252,7 +240,6 @@ class Worker(multiprocessing.Process):
 
     def handle_work(self, work):
         result = self.scraper.get_data_wrapper(work)
-
         self.result_q.put(result)
 
     def run(self):
@@ -262,10 +249,9 @@ class Worker(multiprocessing.Process):
                 if work == 'KILL':
                     self.scraper.shutdown()
                     break
-
                 self.handle_work(work)
         except Exception:
-            print traceback.format_exc()
+            logging.error(traceback.format_exc())
             raise
 
 #############################################################################
@@ -277,12 +263,12 @@ def start_queue(ids):
 
     num_workers = 10
 
-    manager = multiprocessing.Manager()
+    manager = Manager()
     task_q = manager.Queue()
     result_q = manager.Queue()
 
     workers = []
-    for worker_num in xrange(num_workers):
+    for worker_num in range(num_workers):
         worker = Worker(worker_num, task_q, result_q)
         worker.start()
         workers.append(worker)
@@ -322,7 +308,6 @@ if __name__ == "__main__":
 
     parser.set_env()
 
-    i = 0
     properties = {'proc_date': str(datetime.now())[:10].replace('-','')}
 
     cfg = importlib.import_module('.cfg', 'config')
@@ -331,8 +316,8 @@ if __name__ == "__main__":
 
     models = {key: models[key] for key in ['phi']}
 
-    for model in models:
-        tbl.init_tables(model)
+#    for model in models:
+#        tbl.init_tables(model)
 
     for partition in get_partitions(get_tasks()):
 
