@@ -99,7 +99,7 @@ def parse_xml(*args):
     fstart = start
     hdfs = hdfs_connect()
     xml = splitter.extract_xml_parts(file_name)
-    logging.info(('XML file %s has splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
+    logging.info(('XML file %s has been splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
     for mod in modules:
         start = time.time()
         results = []
@@ -122,14 +122,14 @@ def parse_xml(*args):
 #            print err
 
         results = [res for res in results if res]
-        logging.info(('Parser <%s> has done in %s sec.') % (mod, str(round(time.time()-start, 2))))
+        logging.info(('Parser <%s> has been done in %s sec.') % (mod, str(round(time.time()-start, 2))))
 
         proc_date =  f_prop['proc_date']
 
         write_hdfs(hdfs, proc_date, f_prop['f_type'], mod, results)
     hdfs.close()
     set_impala_permissions(cfg.hdfs_base_dir)
-    logging.info(('XML file %s has fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
+    logging.info(('XML file %s has been fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
 
 def parse_txt(*args):
     hdfs_path = ('%s/results/%s/%s/data%s.tsv') % (cfg.hdfs_base_dir, args[1]['f_type'],'fee_main', args[1]['proc_date'])
@@ -203,7 +203,7 @@ def parse_att(*args):
         of.write("".join(content))
         of.close()
 
-        logging.info(('File <%s> hase successfully copied to HDFS') % (short_name))
+        logging.info(('File <%s> has been successfully copied to HDFS') % (short_name))
 
         hdfs.close()
         set_impala_permissions(cfg.hdfs_base_dir)
@@ -242,7 +242,7 @@ def parse_fee_d(*args):
         of.write("".join(content))
         of.close()
 
-        logging.info(('File <%s> hase successfully copied to HDFS') % (short_name))
+        logging.info(('File <%s> has been successfully copied to HDFS') % (short_name))
 
         hdfs.close()
         set_impala_permissions(cfg.hdfs_base_dir)
@@ -270,7 +270,7 @@ def write_result(proc_date, modul, results):
         of = open(file_name, "w")
         of.write("".join(results))
         of.close()
-        logging.info(('Data for <%s> parser has successfully written') % (modul))
+        logging.info(('Data for <%s> parser has been successfully written') % (modul))
     except Exception as err:
         logging.error(('Failed when writing results for <%s> parser') % (modul))
         logging.error(err)
@@ -281,7 +281,7 @@ def write_hdfs(hdfs, proc_date, ftype, modul, results):
         of = hdfs.open(file_name, "wb")
         of.write("".join(results))
         of.close()
-        logging.info(('Data for <%s> parser has successfully written') % (modul))
+        logging.info(('Data for <%s> parser has been successfully written') % (modul))
         return file_name
     except Exception as err:
         logging.error(('Failed when writing results for <%s> parser') % (modul))

@@ -27,7 +27,7 @@ def init_tables(ttype):
         for mod in modules:
             impala_cur.execute(modules[mod].model.get_int_schema(ttype))
             impala_cur.execute(modules[mod].model.get_ext_schema(ttype))
-            logging.info(('Table %s has successfully initialized!') % (mod))
+            logging.info(('Table %s has been successfully initialized!') % (mod))
         impala_cur.close()
         impala_con.close() 
         return True
@@ -94,9 +94,9 @@ def load_tables(properties,t_init=True):
 #            print load_sql
 #            print insert_sql
             impala_cur.execute(load_sql)
-            logging.info(('Data has successfully loaded into temporary table: %s!') % (table_name))
+            logging.info(('Data has been successfully loaded into temporary table: %s!') % (table_name))
             impala_cur.execute(insert_sql)
-            logging.info(('Data has successfully loaded into HDFS table: %s!') % (table_name))
+            logging.info(('Data has been successfully loaded into HDFS table: %s!') % (table_name))
         impala_cur.close()
         impala_con.close()
         return True

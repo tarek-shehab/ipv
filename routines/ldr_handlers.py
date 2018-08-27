@@ -46,7 +46,7 @@ def f_get(url, target):
             os.remove(target + name)
             os.rename(dfile, target + name)
 
-        logging.info(('File <%s> has downloaded in %s sec.') % (name, str(round(time.time()-stime,2))))
+        logging.info(('File <%s> has been downloaded in %s sec.') % (name, str(round(time.time()-stime,2))))
         return target + name
     except Exception as err:
         logging.error('Failed to download file')
@@ -62,7 +62,7 @@ def f_unzip(zfile, target):
         zip_ref.extractall(target)
         zip_ref.close()
         os.remove(zfile)
-        logging.info(('File <%s> has unzipped in %s sec.') % (zfile, str(round(time.time()-stime,2))))
+        logging.info(('File <%s> has been unzipped in %s sec.') % (zfile, str(round(time.time()-stime,2))))
     except Exception as err:
         logging.error('Failed to unzip file')
         logging.error(err)
