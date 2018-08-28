@@ -140,7 +140,7 @@ def parse_xml(*args):
 
         results = [res for res in results if res]
         logging.info(('Parser <%s> has been done in %s sec.') % (mod, str(round(time.time()-start, 2))))
-        logging.info(('Output file contains %s elements') % (len(results))
+        logging.info(('Output file contains %s elements') % (len(results)))
 
         proc_date =  f_prop['proc_date']
 
