@@ -116,7 +116,9 @@ def parse_xml(*args):
     fstart = start
     hdfs = hdfs_connect()
     xml = splitter.extract_xml_parts(file_name)
-    logging.info(('XML file %s has been splitted in %s sec.') % (short_name, str(round(time.time()-start, 2))))
+    logging.info(('XML file %s has been splitted in %s sec. and contains %s DTDs') % (short_name,
+                                                                                      str(round(time.time()-start, 2),
+                                                                                      len(xml)))
     for mod in modules:
         start = time.time()
         results = []
@@ -138,6 +140,7 @@ def parse_xml(*args):
 
         results = [res for res in results if res]
         logging.info(('Parser <%s> has been done in %s sec.') % (mod, str(round(time.time()-start, 2))))
+        logging.info(('Output file contains %s elements') % (len(results))
 
         proc_date =  f_prop['proc_date']
 
