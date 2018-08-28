@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #############################################################################
-#
+# IPV Transaction history API requester
+# Author: Alex Kovalsky
 #############################################################################
 import sys
 import time
@@ -27,6 +28,9 @@ from multiprocessing import Value, Array
 from config import cfg
 from routines.send_mail import send_mail
 
+#############################################################################
+# Write array of results to the local file
+#############################################################################
 def write_local(arr,name):
     res = ''
     for elm in arr:
@@ -34,6 +38,9 @@ def write_local(arr,name):
     with open(name, 'w') as fl:
        fl.write(res)
 
+#############################################################################
+# Request TH API with retrying up to 60 sec.
+#############################################################################
 @retry(wait_exponential_multiplier=10, wait_exponential_max=5000, stop_max_delay=60000)
 def get_data(app_id):
     try:
@@ -76,6 +83,9 @@ def get_data(app_id):
         st_data.retries.value += 1
         raise Exception('Request failed'+str(err))
 
+#############################################################################
+# Wrap API reques process for using in multiprocessing pool
+#############################################################################
 def get_data_wrapper(app_id):
     try:
         return get_data(str(app_id))
@@ -83,6 +93,9 @@ def get_data_wrapper(app_id):
         st_data.failed_ids = int(app_id if app_id else 0)
         return []
 
+#############################################################################
+# Execute Impala query
+#############################################################################
 def run_query(query):
     impala_con = connect(host='localhost')
     impala_cur = impala_con.cursor()
@@ -92,6 +105,9 @@ def run_query(query):
     impala_con.close()
     return result
 
+#############################################################################
+# Get list of partitions starting from 35 days ago
+#############################################################################
 def get_partitions():
     start_date = str(datetime.now() - timedelta(days=35))[:10].replace('-','')
 
@@ -104,6 +120,9 @@ def get_partitions():
 
     return [ids[0] for ids in run_query(sql)]
 
+#############################################################################
+# Get application ids list from particular partition
+#############################################################################
 def get_ids(partition):
 
     sql = ('SELECT app_id FROM '
@@ -111,10 +130,13 @@ def get_ids(partition):
            'WHERE proc_date = \'%s\' '
            'UNION '
            'SELECT DISTINCT app_id FROM `ipv_db`.application_main '
-           'WHERE proc_date = \'%s\') as t0 limit 10') % (partition, partition)
+           'WHERE proc_date = \'%s\') as t0') % (partition, partition)
 
     return [ids[0] for ids in run_query(sql)]
 
+#############################################################################
+# Start multiprocessing pool
+#############################################################################
 def start_pool(ids):
     start = time.time()
     logging.info(('Numbers of appIds in partition: %s') % (str(len(ids))))
@@ -125,6 +147,9 @@ def start_pool(ids):
     logging.info(('Ids processing completed %s sec') % (str(round(time.time()-start, 2))))
     return [res for res in results if res]
 
+#############################################################################
+# Split response to two separate data sets: common info and transactions
+#############################################################################
 def split_result(result, partition):
     info_pool = []
     trh_pool = []
@@ -145,6 +170,9 @@ def split_result(result, partition):
         'thist_len': len(trh_pool)
         }
 
+#############################################################################
+# Get year to process depend on host IP address
+#############################################################################
 def get_tasks():
     tasks = {'192.168.250.11' :['2006','2007'],
              '192.168.250.12' :['2008','2009'],
@@ -157,6 +185,9 @@ def get_tasks():
             }
     return tasks.get(socket.gethostbyname(socket.gethostname()))
 
+#############################################################################
+# Get credential for EMail notification
+#############################################################################
 def get_mail_params(rfile):
     with open(rfile, 'r') as fl:
         text = fl.readlines()
@@ -173,6 +204,9 @@ def get_mail_params(rfile):
 
     return mail_params
 
+#############################################################################
+# Thread safe data struct for store statistic info from different processes
+#############################################################################
 class Stat:
     def __init__(self):
         self.__dict__['stat'] = {

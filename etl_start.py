@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #############################################################################
-#
+# IPV Patent information files Downloader&Parser
+# Author: Alex Kovalsky
 #############################################################################
 import sys
 import os
@@ -18,26 +19,37 @@ from config import cfg
 from datetime import datetime
 import argparse
 
+#############################################################################
+# --type CLI parameter validation
+#############################################################################
 def check_type(value):
     if value not in ['ipg', 'ipa', 'ad', 'fee', 'att', 'pg', 'pa']:
         raise argparse.ArgumentTypeError("%s is an incorrect file type" % value)
     return value
 
+#############################################################################
+# --mode CLI parameter validation
+#############################################################################
 def check_mode(value):
     if value not in ['load', 'parse']:
         raise argparse.ArgumentTypeError("%s is an incorrect procesing mode" % value)
     return value
 
+#############################################################################
+# --year CLI parameter validation
+#############################################################################
 def check_year(value):
     if int(value) < 2001 and int(value) > 2050:
         raise argparse.ArgumentTypeError("%s is an incorrect procesing year" % value)
     return value
 
+#############################################################################
+# Start loading process
+#############################################################################
 def load_proc(year, ftype, all_files=None):
     target_dir = ('./source/%s/') % (ftype)
     links = lnk.get_links(year, ftype, all_files)
     logging.info(('Found %s files to download') % (str(len(links))))
-#    quit()
     for link in links:
         stime = time.time()
         logging.info(('Downloading: %s') % (link))
@@ -46,6 +58,9 @@ def load_proc(year, ftype, all_files=None):
         logging.info(('File %s has been downloaded and unzipped in %s sec.') % (link.split('/')[-1],
                        str(time.time()-stime).split('.')[0]))
 
+#############################################################################
+# Start parsing process
+#############################################################################
 def parse_proc(year, ftype, all_files=None):
     stime = time.time()
     source_dir = ('./source/%s/') % (ftype)
@@ -71,6 +86,9 @@ def parse_proc(year, ftype, all_files=None):
 
         logging.info(('Total processing time: %s') % (str(round(time.time()-stime,2))))
 
+#############################################################################
+# Get credential for EMail notification
+#############################################################################
 def get_mail_params(ftype, mode, rfile):
     with open(rfile, 'r') as fl:
         text = fl.readlines()
@@ -105,7 +123,6 @@ def get_mail_params(ftype, mode, rfile):
 if __name__ == "__main__":
 
     try:
-#    if True:
         descr = ('IPV Patent information files Downloader&Parser v0.1\n'
                  'Author: Alex Kovalsky')
         arg_parser = argparse.ArgumentParser(description=descr)

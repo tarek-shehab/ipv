@@ -109,7 +109,7 @@ def get_tasks():
     return tasks.get(socket.gethostbyname(socket.gethostname()))
 
 #############################################################################
-#
+# Get credential for EMail notification
 #############################################################################
 def get_mail_params(rfile):
     with open(rfile, 'r') as fl:

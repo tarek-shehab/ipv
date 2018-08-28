@@ -1,4 +1,7 @@
-######################################################################
+#############################################################################
+# Custom user agents list, used to present each request to the Page or API
+# as request from different device
+#############################################################################
 import random
 
 custom_user_agent = [

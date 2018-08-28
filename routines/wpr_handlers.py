@@ -1,6 +1,6 @@
-######################################################################
-#
-######################################################################
+#############################################################################
+# Misc. parser handlers
+#############################################################################
 from multiprocessing import Pool,cpu_count
 import xml_splitter as splitter
 import importlib
@@ -16,6 +16,9 @@ from datetime import datetime
 
 cfg = importlib.import_module('.cfg', 'config')
 
+#############################################################################
+# Get list of allowed parser models
+#############################################################################
 def init_parsers(f_type):
     modules = {}
 
@@ -24,6 +27,9 @@ def init_parsers(f_type):
     for mod in parsers[f_type]: modules[mod] = importlib.import_module('.' + mod, 'parsers.'+f_type)
     return modules
 
+#############################################################################
+# Set JAVE env variables
+#############################################################################
 def set_env():
     # libhdfs.so path
     cmd = ["locate", "-l", "1", "libhdfs.so"]
@@ -42,6 +48,10 @@ def set_env():
     else:
         os.environ["CLASSPATH"] = hadoop_cp
 
+#############################################################################
+# Set required permission to HDFS path
+# It should be done for using HDFS file as Impala table source
+#############################################################################
 def set_impala_permissions(base_dir):
     try:
         logging.info('Changing HDFS files permissions')
@@ -53,6 +63,9 @@ def set_impala_permissions(base_dir):
         logging.error('Can\'t change HDFS files permissions!')
         logging.error(err)
 
+#############################################################################
+# Get required information from file name
+#############################################################################
 def parse_file_name(file_name):
     name_templates = {'att'  : {'template':'WebRoster.txt', 'prefix': '' , 'reg': None},
                       'fee_m': {'template':'MaintFeeEvents_','prefix': '', 'reg': '([0-9]{8})'},
@@ -85,11 +98,15 @@ def parse_file_name(file_name):
 
     return result
 
+#############################################################################
+# Get HDFS connector
+#############################################################################
 def hdfs_connect():
-#    set_env()
     return pa.hdfs.connect("192.168.250.15", 8020, user='hdfs', driver='libhdfs')
-#    return pa.hdfs.connect("192.168.250.19", 8020, user='hdfs', driver='libhdfs')
 
+#############################################################################
+# Parsing XML files
+#############################################################################
 def parse_xml(*args):
     file_name = args[0]
     f_prop = args[1]
@@ -103,6 +120,7 @@ def parse_xml(*args):
     for mod in modules:
         start = time.time()
         results = []
+
 #        for part in xml:
 #            print "##############################################################"
 #            part = part.replace('&',' ')
@@ -111,15 +129,12 @@ def parse_xml(*args):
 #            except Exception as err:
 #                print part
 #                print err
-#        try:
+
         pool = Pool(processes = 5, maxtasksperchild=1000)
-#        pool = Pool(processes = 1, maxtasksperchild=1000)
         results = pool.map(modules[mod].create_line, xml)
-#
+
         pool.close()
         pool.join()
-#        except Exception as err:
-#            print err
 
         results = [res for res in results if res]
         logging.info(('Parser <%s> has been done in %s sec.') % (mod, str(round(time.time()-start, 2))))
@@ -131,18 +146,22 @@ def parse_xml(*args):
     set_impala_permissions(cfg.hdfs_base_dir)
     logging.info(('XML file %s has been fully processed in %s sec.') % (short_name, str(round(time.time()-fstart, 2))))
 
+#############################################################################
+# 
+#############################################################################
 def parse_txt(*args):
     hdfs_path = ('%s/results/%s/%s/data%s.tsv') % (cfg.hdfs_base_dir, args[1]['f_type'],'fee_main', args[1]['proc_date'])
-#    print args[0], hdfs_path
     local_to_hdfs(args[0], hdfs_path)
 
+#############################################################################
+# Parser wrapper
+#############################################################################
 def parse(file_name):
     if not file_name:
         logging.error(('Incorrect argument for File parser') % (file_name))
         return False
 
-#    try:
-    if True:
+    try:
         short_name = os.path.basename(file_name)
         f_prop = parse_file_name(short_name)
 
@@ -159,17 +178,17 @@ def parse(file_name):
                    'pa'   : [parse_xml, (file_name, f_prop, modules)]
                   }
 
-#        print f_prop
-#        print file_name
-
         workers[f_prop['f_type']][0](*workers[f_prop['f_type']][1])
 
         return f_prop
-#    except Exception as err:
-#        logging.error(('XML file %s processing failed!') % (short_name))
-#        logging.error(err)
-#        return False
+    except Exception as err:
+        logging.error(('XML file %s processing failed!') % (short_name))
+        logging.error(err)
+        return False
 
+#############################################################################
+# Parse Attorney text file
+#############################################################################
 def parse_att(*args):
     file_name = args[0]
     f_prop = args[1]
@@ -213,6 +232,9 @@ def parse_att(*args):
         logging.error(err)
         return False
 
+#############################################################################
+# Parsing transaction fee description file
+#############################################################################
 def parse_fee_d(*args):
     file_name = args[0]
     f_prop = args[1]
@@ -252,6 +274,9 @@ def parse_fee_d(*args):
         logging.error(err)
         return False
 
+#############################################################################
+# Copy file from local to HDFS
+#############################################################################
 def local_to_hdfs(local_file, hdfs_path):
     hdfs_dir = '/'.join(hdfs_path.split('/')[:-1])
     cmds = [["hdfs", "dfs", "-mkdir", "-p", hdfs_dir],
@@ -264,17 +289,23 @@ def local_to_hdfs(local_file, hdfs_path):
     set_impala_permissions(cfg.hdfs_base_dir)
     return True
 
+#############################################################################
+# Write content to the local file
+#############################################################################
 def write_result(proc_date, modul, results):
     try:
         file_name = os.getcwd() + '/results/' + modul + '/data' + proc_date +'.tsv'
-        of = open(file_name, "w")
-        of.write("".join(results))
-        of.close()
+        with open(file_name, "w") as of:
+            of.write("".join(results))
+
         logging.info(('Data for <%s> parser has been successfully written') % (modul))
     except Exception as err:
         logging.error(('Failed when writing results for <%s> parser') % (modul))
         logging.error(err)
 
+#############################################################################
+# Write content to the HDFS file
+#############################################################################
 def write_hdfs(hdfs, proc_date, ftype, modul, results):
     try:
         file_name = ('%s/results/%s/%s/data%s.tsv') % (cfg.hdfs_base_dir, ftype, modul, proc_date)

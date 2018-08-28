@@ -1,5 +1,5 @@
 ######################################################################
-#
+# Tables initialization handlers
 ######################################################################
 from impala.dbapi import connect
 import importlib
@@ -9,6 +9,9 @@ import os
 models = importlib.import_module('.cfg', 'config').active_models
 cfg = importlib.import_module('.cfg', 'config')
 
+######################################################################
+# Get list of active (allowed) table models
+######################################################################
 def init_models(mtype):
     tlist = []
     modules = {}
@@ -18,8 +21,10 @@ def init_models(mtype):
         return modules
     else: raise Exception('Tables type is incorrect!')
 
+######################################################################
+# Init tables
+######################################################################
 def init_tables(ttype):
-#    if True:
     try:
         impala_con = connect(host=cfg.impala_host)
         impala_cur = impala_con.cursor()
@@ -36,6 +41,9 @@ def init_tables(ttype):
         logging.error(err)
         return False
 
+######################################################################
+# Show allowed models list
+######################################################################
 def show_tables(ttype):
     modules = init_models(ttype)
     for mod in modules:
@@ -44,6 +52,11 @@ def show_tables(ttype):
         print modules[mod].model.get_ext_schema(ttype)
         print '###################################################################################'
 
+######################################################################
+# Two step table loading process
+# 1st step: HDFS -> External table
+# 2nd step: External table -> Internal table
+######################################################################
 def load_tables(properties,t_init=True):
     if (not properties) or properties['f_type'] not in list(models.keys()):
        logging.error('Incorrect argument for tables loader!')
@@ -51,7 +64,6 @@ def load_tables(properties,t_init=True):
 
     modules = init_models(properties['f_type'])
 
-#    if True:
     try:
         if t_init:
             if not init_tables(properties['f_type']): raise Exception()

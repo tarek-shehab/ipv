@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Load all types of source files
 ./etl_start.py --mode=load --type=ipg
 ./etl_start.py --mode=load --type=ipa
 ./etl_start.py --mode=load --type=ad

@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Get links handlers
 #############################################################################
 import user_agents as ua
 import logging
@@ -11,9 +11,15 @@ from datetime import datetime
 import importlib
 cfg = importlib.import_module('.cfg', 'config')
 
+#############################################################################
+# Get list of allowed file types
+#############################################################################
 def get_possible_ftypes():
    return [t if not t.startswith('fee') else 'fee' for t in cfg.active_parsers.keys()]
 
+#############################################################################
+# Get full links list from paricular web page (depending of file type)
+#############################################################################
 def get_links_list(year, ftype):
     logging.info('Creating links list')
     if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
@@ -42,16 +48,16 @@ def get_links_list(year, ftype):
             elif ftype in ['pg','pa']: res.append(durl_prefix + fl[2:4] + '/' + fl)
             else:res.append(durl_prefix + fl[3:5] + '/' + fl)
 
-#    print res
     return res if len(res) > 0 else False
 
-
+#############################################################################
+# Get allowed to download links list (depending of file type)
+#############################################################################
 def get_links(year, ftype, full_list=None):
 
     if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
     links = get_links_list(year, ftype)
     if not links: raise Exception('No links were extracted for this year')
-#    print links
     res = []
     if not full_list:
         tbl_preffix = {'ipg' :'grant',

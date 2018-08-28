@@ -1,5 +1,6 @@
 ######################################################################
-#
+# Wrapper class for creating full CREATE TABLE expression
+# for each particular model
 ######################################################################
 class tbl_model():
 

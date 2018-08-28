@@ -1,3 +1,6 @@
+#############################################################################
+# Send mail handler
+#############################################################################
 import smtplib
 from os.path import basename
 from email.mime.application import MIMEApplication

@@ -1,5 +1,5 @@
 ######################################################################
-#
+# Working DataBases initialization
 ######################################################################
 from impala.dbapi import connect 
 import logging

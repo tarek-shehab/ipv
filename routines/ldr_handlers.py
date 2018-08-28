@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Loading and Unziping file from given URL
 #############################################################################
 import sys
 import time
@@ -17,6 +17,11 @@ from bs4 import BeautifulSoup
 import socket
 
 
+#############################################################################
+# WGET - get file from URL and store it to the local filesystem
+# If the size of file less than 1000 bytes it marks as EMPTY
+# This process automaticaly overwrite existing files
+#############################################################################
 def f_get(url, target):
     name = url.split('/')[-1]
     logging.info(('Start downloading <%s>') % (name))
@@ -25,7 +30,6 @@ def f_get(url, target):
         if not os.path.exists(target):
             os.makedirs(target)
         meta = urllib.urlopen(url).info()
-#        print meta
         size = int(meta.getheaders("Content-Length")[0])
 
         if size < 1000:
@@ -53,6 +57,9 @@ def f_get(url, target):
         logging.error(err)
         return False
 
+#############################################################################
+# Unzip the particular .zip file and delete source
+#############################################################################
 def f_unzip(zfile, target):
     if not zfile: return False
     stime = time.time()

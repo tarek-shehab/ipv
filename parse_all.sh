@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Parse all types of source files
+# Load parsed files into Impala tables
 ./etl_start.py --mode=parse --type=ipg
 ./etl_start.py --mode=parse --type=ipa
 ./etl_start.py --mode=parse --type=ad
