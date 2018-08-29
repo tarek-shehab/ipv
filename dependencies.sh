@@ -12,3 +12,4 @@ pip install requests
 pip install wget
 pip install retrying
 pip install selenium
+pip install pysocks

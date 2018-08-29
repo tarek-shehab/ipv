@@ -46,14 +46,16 @@ def check_year(value):
 #############################################################################
 # Start loading process
 #############################################################################
-def load_proc(year, ftype, all_files=None):
+def load_proc(year, ftype, all_files=None, tor=None):
     target_dir = ('./source/%s/') % (ftype)
-    links = lnk.get_links(year, ftype, all_files)
+    links = lnk.get_links(year, ftype, all_files, tor)
     logging.info(('Found %s files to download') % (str(len(links))))
     for link in links:
         stime = time.time()
         logging.info(('Downloading: %s') % (link))
-        zpf = loader.f_get(link, target_dir)
+        if tor: zpf = loader.f_get_(link, target_dir)
+        else:
+            zpf = loader.f_get(link, target_dir)
         loader.f_unzip(zpf, target_dir)
         logging.info(('File %s has been downloaded and unzipped in %s sec.') % (link.split('/')[-1],
                        str(time.time()-stime).split('.')[0]))
@@ -137,6 +139,8 @@ if __name__ == "__main__":
                 help="Year for source file downloads")
         arg_parser.add_argument("--full", action='store_true',
                 help="Loading mode: full load , instead of only new files")
+        arg_parser.add_argument("--tor", action='store_true',
+                help="Using TOR (anonymous network)")
         arg_parser.add_argument("--init_tables", action='store_true',
                 help="Force tables initialization before processing")
         arg_parser.add_argument("--init_databases", action='store_true',
@@ -162,7 +166,7 @@ if __name__ == "__main__":
         fileHandler.setFormatter(logFormatter)
         rootLogger.addHandler(fileHandler)
 
-        arg = (args.year, args.type, args.full)
+        arg = (args.year, args.type, args.full, args.tor)
 
         proc = {'load' : load_proc,
                 'parse': parse_proc}

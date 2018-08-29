@@ -51,12 +51,51 @@ def get_links_list(year, ftype):
     return res if len(res) > 0 else False
 
 #############################################################################
+# Get full links list from paricular web page (depending of file type) TOR
+#############################################################################
+def get_links_list_(year, ftype):
+    logging.info('Creating links list')
+    if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
+    res = []
+    if ftype == 'ad': 
+        url = cfg.dwl_links[ftype]
+        durl_prefix = url
+    elif ftype in ['fee','att']:
+        return [cfg.dwl_links[ftype]]
+    else:
+        url =('%s%s/') % (cfg.dwl_links[ftype], year)
+        durl_prefix = ('%s20') % (cfg.dwl_links[ftype])
+
+    HEADERS = {'User-Agent': ua.get_user_agent()}
+    session = requests.session()
+    session.proxies = {}
+    session.proxies['http'] = 'socks5h://localhost:9050'
+    session.proxies['https'] = 'socks5h://localhost:9050'
+
+    page = session.get(url, headers=HEADERS)
+
+    content = html.fromstring(page.content)
+
+    file_list =  content.xpath('.//tr/td/a/text()')
+
+    for fl in file_list:
+        if fl.endswith('.zip') and (fl.split('/')[-1].find('-') < 0):
+            if ftype == 'ad':
+                res.append(durl_prefix + fl)
+            elif ftype in ['pg','pa']: res.append(durl_prefix + fl[2:4] + '/' + fl)
+            else:res.append(durl_prefix + fl[3:5] + '/' + fl)
+
+    return res if len(res) > 0 else False
+
+#############################################################################
 # Get allowed to download links list (depending of file type)
 #############################################################################
-def get_links(year, ftype, full_list=None):
+def get_links(year, ftype, full_list=None, tor=None):
 
     if ftype not in get_possible_ftypes(): raise Exception('Incorrect file type!')
-    links = get_links_list(year, ftype)
+    if tor: links = get_links_list_(year, ftype)
+    else:
+        links = get_links_list(year, ftype)
     if not links: raise Exception('No links were extracted for this year')
     res = []
     if not full_list:

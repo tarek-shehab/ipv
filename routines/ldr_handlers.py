@@ -15,7 +15,7 @@ import os
 import wget
 from bs4 import BeautifulSoup
 import socket
-
+import shutil
 
 #############################################################################
 # WGET - get file from URL and store it to the local filesystem
@@ -49,6 +49,52 @@ def f_get(url, target):
         if os.path.exists(target + name) and (target+name) != dfile:
             os.remove(target + name)
             os.rename(dfile, target + name)
+
+        logging.info(('File <%s> has been downloaded in %s sec.') % (name, str(round(time.time()-stime,2))))
+        return target + name
+    except Exception as err:
+        logging.error('Failed to download file')
+        logging.error(err)
+        return False
+
+#############################################################################
+#
+#############################################################################
+def f_get_(url, target):
+    name = url.split('/')[-1]
+    logging.info(('Start downloading <%s>') % (name))
+    stime = time.time()
+    try:
+        if not os.path.exists(target):
+            os.makedirs(target)
+
+        session = requests.session()
+        session.proxies = {}
+        session.proxies['http'] = 'socks5h://localhost:9050'
+        session.proxies['https'] = 'socks5h://localhost:9050'
+        meta = session.head(url)
+        size = int(meta.headers["Content-Length"])
+
+        if size < 1000:
+            raise Exception(('Seems like file <%s> is empty') % (name))
+
+        r = session.get(url, stream=True)
+        with open(target + name, 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+
+        with open(target + name, 'rb') as fl:
+            part = fl.read(500)
+
+        res = BeautifulSoup(part, "html.parser").find('title')
+        ind = bool(res)
+
+        if ind:
+            os.remove(target + name)
+            raise Exception(res.text)
+
+#        if os.path.exists(target + name) dfile:
+#            os.remove(target + name)
+#            os.rename(dfile, target + name)
 
         logging.info(('File <%s> has been downloaded in %s sec.') % (name, str(round(time.time()-stime,2))))
         return target + name
