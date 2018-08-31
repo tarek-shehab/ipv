@@ -49,6 +49,10 @@ def check_year(value):
 def load_proc(year, ftype, all_files=None, tor=None):
     target_dir = ('./source/%s/') % (ftype)
     links = lnk.get_links(year, ftype, all_files, tor)
+#    restricted = [
+#            'ipa111229'
+#            ]
+#    links = [elm for elm in links if not any(rst in elm for rst in restricted)]
     logging.info(('Found %s files to download') % (str(len(links))))
     for link in links:
         stime = time.time()
@@ -63,7 +67,7 @@ def load_proc(year, ftype, all_files=None, tor=None):
 #############################################################################
 # Start parsing process
 #############################################################################
-def parse_proc(year, ftype, all_files=None):
+def parse_proc(year, ftype, all_files=None, tor=None):
     stime = time.time()
     source_dir = ('./source/%s/') % (ftype)
     processed_dir = ('./source/processed/%s/') % (ftype)

@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+#from selenium.webdriver.chrome.options import Options
 import routines.tbl_handlers as tbl
 import routines.wpr_handlers as parser
 import routines.user_agents as ua
@@ -55,11 +56,11 @@ def run_query(query):
 def get_partitions(years):
     years = ','.join(map(lambda arg: '\''+arg+'\'', years))
 
-    sql = ('SELECT DISTINCT t0.proc_date FROM `ipv_db`.grant_main t0 '
+    sql = ('SELECT t0.proc_date, count(*) AS nmb FROM `ipv_db`.grant_main t0 '
            'LEFT OUTER JOIN `ipv_db`.ph_info t1 '
            'ON t0.app_id = t1.app_id and t0.pub_ref_doc_number = t1.patent_no '
            'WHERE t1.app_id IS NULL and t1.patent_no IS NULL AND SUBSTR(t0.proc_date,1,4) IN (%s) '
-           'ORDER BY t0.proc_date DESC ') % (years)
+           'GROUP BY t0.proc_date HAVING nmb >= 100 ORDER BY t0.proc_date DESC ') % (years)
 #           'ORDER BY t0.proc_date DESC LIMIT 1') % (years)
 
     return [ids[0] for ids in run_query(sql)]
@@ -97,7 +98,7 @@ def split_result(result, partition):
 #
 #############################################################################
 def get_tasks():
-    tasks = {'192.168.250.11' :['2018', '2017'],
+    tasks = {'192.168.250.11' :['2014', '2013'],
              '192.168.250.12' :['2016', '2015'],
              '192.168.250.13' :['2010', '2011'],
              '192.168.250.15' :['2012', '2013'],
@@ -170,6 +171,7 @@ class Browser:
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
         chrome_options.add_argument(('user-agent=%s') % (ua.get_user_agent()))
         self.driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=chrome_options,
                                   service_args=['--verbose', '--log-path=./log/chromedriver.log'])
@@ -203,7 +205,6 @@ class Browser:
             wait.until(wait_for_non_empty_text((By.XPATH, '//span[@data-dojo-attach-point="address"]')))
 
             res = [str(arg[0]), arg[1]]
-
             res.append(self.driver.find_element_by_xpath('//span[@data-dojo-attach-point="customerNumber"]').text)
             res.append(self.driver.find_element_by_xpath('//span[@data-dojo-attach-point="entityStatus"]').text)
             res.append(self.driver.find_element_by_xpath('//span[@data-dojo-attach-point="phone"]').text)
