@@ -108,11 +108,13 @@ def get_links(year, ftype, full_list=None, tor=None):
         impala_con = connect(host=cfg.impala_host)
         impala_cur = impala_con.cursor()
         if ftype in ['ipg', 'ipa', 'pg', 'pa', 'fee']:
-            query = ('SELECT DISTINCT proc_date FROM `ipv_db`.`%s_main` WHERE SUBSTR(proc_date,1,4) = \'%s\'') % (tbl_preffix, year)
+            query = ('SELECT DISTINCT proc_date FROM `ipv_db`.`%s_main` '
+                     'WHERE SUBSTR(proc_date,1,4) = \'%s\' ORDER by proc_date DESC') % (tbl_preffix, year)
         elif ftype in ['att']:
             query = ('SELECT updated FROM `ipv_db`.`%s` LIMIT 1') % (tbl_preffix)
         else:
-            query = ('SELECT DISTINCT last_update FROM `ipv_db`.`%s_main` WHERE SUBSTR(last_update,1,4) = \'%s\'') % (tbl_preffix, year)
+            query = ('SELECT DISTINCT last_update FROM `ipv_db`.`%s_main` '
+                     'WHERE SUBSTR(last_update,1,4) = \'%s\' ORDER BY last_update DESC') % (tbl_preffix, year)
 
         impala_cur.execute(query)
         dates = [elm[0][2:] for elm in impala_cur.fetchall()]
@@ -121,10 +123,9 @@ def get_links(year, ftype, full_list=None, tor=None):
 
         if ftype in ['fee','att']:
             meta = urllib.urlopen(links[0]).info()
-            date = datetime.strptime(meta.getheaders('Last-Modified')[0],'%a, %d %b %Y %H:%M:%S %Z')
-            date = datetime.strftime(date, '%Y%m%d')
-            print dates, date, links[:]
-            if date[2:] not in dates: res = links[:]
+            file_date = datetime.strptime(meta.getheaders('Last-Modified')[0],'%a, %d %b %Y %H:%M:%S %Z')
+            base_date = datetime.strptime('20' + dates[0], '%Y%m%d')
+            if (file_date-base_date).days > 2: res = links[:]
         else:
             for elm in links:
                 if (elm[-4:].lower() != '.zip') or (elm[-10:-4] in dates): continue

@@ -60,7 +60,7 @@ def get_partitions(years):
            'LEFT OUTER JOIN `ipv_db`.ph_info t1 '
            'ON t0.app_id = t1.app_id and t0.pub_ref_doc_number = t1.patent_no '
            'WHERE t1.app_id IS NULL and t1.patent_no IS NULL AND SUBSTR(t0.proc_date,1,4) IN (%s) '
-           'GROUP BY t0.proc_date HAVING nmb >= 100 ORDER BY t0.proc_date DESC ') % (years)
+           'GROUP BY t0.proc_date HAVING nmb >= 1 ORDER BY t0.proc_date DESC ') % (years)
 #           'ORDER BY t0.proc_date DESC LIMIT 1') % (years)
 
     return [ids[0] for ids in run_query(sql)]
@@ -98,7 +98,7 @@ def split_result(result, partition):
 #
 #############################################################################
 def get_tasks():
-    tasks = {'192.168.250.11' :['2014', '2013'],
+    tasks = {'192.168.250.11' :['2001', '2002'],
              '192.168.250.12' :['2016', '2015'],
              '192.168.250.13' :['2010', '2011'],
              '192.168.250.15' :['2012', '2013'],
@@ -171,7 +171,7 @@ class Browser:
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+#        chrome_options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
         chrome_options.add_argument(('user-agent=%s') % (ua.get_user_agent()))
         self.driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=chrome_options,
                                   service_args=['--verbose', '--log-path=./log/chromedriver.log'])
