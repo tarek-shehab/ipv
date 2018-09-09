@@ -141,8 +141,8 @@ mail_params =   {
     'username' : 'reports@taikitech.com',
     'password' : 'reportdaemon',
     'send_from': 'reports@taikitech.com',
-    'send_to'  : ['support@taikitech.com'],
-#    'send_to'  : ['support@taikitech.com', 'tarek.shehab@ipvisibility.com'],
+#    'send_to'  : ['support@taikitech.com'],
+    'send_to'  : ['support@taikitech.com', 'tarek.shehab@ipvisibility.com'],
 #    'text'     : text,
 #    'subject'  : ('%s file %s report') % (type_map[ftype], mode_map[mode]),
 #    'files'    : [out_file_xlsx]

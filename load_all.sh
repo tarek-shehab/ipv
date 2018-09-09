@@ -5,4 +5,6 @@
 ./etl_start.py --mode=load --type=ad
 ./etl_start.py --mode=load --type=att
 ./etl_start.py --mode=load --type=fee
+./kill_proc.sh
+
 

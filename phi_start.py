@@ -18,6 +18,7 @@ import routines.user_agents as ua
 from multiprocessing import Manager, Process
 from retrying import retry
 from datetime import datetime
+from datetime import timedelta
 from impala.dbapi import connect
 import importlib
 from multiprocessing import Value, Array
@@ -54,13 +55,21 @@ def run_query(query):
 #
 #############################################################################
 def get_partitions(years):
-    years = ','.join(map(lambda arg: '\''+arg+'\'', years))
+#    years = ','.join(map(lambda arg: '\''+arg+'\'', years))
+
+    start_date = str(datetime.now() - timedelta(days=35))[:10].replace('-','')
 
     sql = ('SELECT t0.proc_date, count(*) AS nmb FROM `ipv_db`.grant_main t0 '
            'LEFT OUTER JOIN `ipv_db`.ph_info t1 '
            'ON t0.app_id = t1.app_id and t0.pub_ref_doc_number = t1.patent_no '
-           'WHERE t1.app_id IS NULL and t1.patent_no IS NULL AND SUBSTR(t0.proc_date,1,4) IN (%s) '
-           'GROUP BY t0.proc_date HAVING nmb >= 1 ORDER BY t0.proc_date DESC ') % (years)
+           'WHERE t1.app_id IS NULL and t1.patent_no IS NULL AND t0.proc_date >= \'%s\' '
+           'GROUP BY t0.proc_date HAVING nmb >= 1 ORDER BY t0.proc_date DESC ') % (start_date)
+
+#    sql = ('SELECT t0.proc_date, count(*) AS nmb FROM `ipv_db`.grant_main t0 '
+#           'LEFT OUTER JOIN `ipv_db`.ph_info t1 '
+#           'ON t0.app_id = t1.app_id and t0.pub_ref_doc_number = t1.patent_no '
+#           'WHERE t1.app_id IS NULL and t1.patent_no IS NULL AND SUBSTR(t0.proc_date,1,4) IN (%s) '
+#           'GROUP BY t0.proc_date HAVING nmb >= 1 ORDER BY t0.proc_date DESC ') % (years)
 #           'ORDER BY t0.proc_date DESC LIMIT 1') % (years)
 
     return [ids[0] for ids in run_query(sql)]
@@ -179,7 +188,6 @@ class Browser:
 
     @retry(wait_exponential_multiplier=10, wait_exponential_max=5000, stop_max_delay=10000)
     def get_data(self, arg):
-#        if True:
         try:
             app_id = str(arg[0])
             if len(app_id) > 8: return False
@@ -198,7 +206,7 @@ class Browser:
             target_link = ('https://fees.uspto.gov/MaintenanceFees/fees/details?'
                            'applicationNumber=%s&patentNumber=%s') % (app_id, patent_no)
 
-            logging.info(('Request started for APP_ID: %s PATENT_NO: %s') % (arg[0], arg[1]))
+#            logging.info(('Request started for APP_ID: %s PATENT_NO: %s') % (arg[0], arg[1]))
 
             self.driver.get(target_link)
             wait = WebDriverWait(self.driver, 5)

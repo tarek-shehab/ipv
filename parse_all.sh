@@ -6,4 +6,6 @@
 ./etl_start.py --mode=parse --type=ad
 ./etl_start.py --mode=parse --type=att
 ./etl_start.py --mode=parse --type=fee
+./kill_proc.sh
+
 
