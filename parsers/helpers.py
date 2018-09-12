@@ -6,7 +6,7 @@ import logging
 import time
 
 #############################################################################
-#
+# Extract value from given tag content, return "-" when no content found
 #############################################################################
 def get_value(arg):
     if arg is not None and len(arg) > 0:
@@ -19,7 +19,7 @@ def get_value(arg):
     else: return arg.text.replace('\n',' ').strip() if (arg is not None and arg.text is not None) else "-"
 
 #############################################################################
-#
+# Get list of tags content from particular tag
 #############################################################################
 def get_parts(xml_part, parts_tag, app_num_tag):
 
@@ -32,7 +32,7 @@ def get_parts(xml_part, parts_tag, app_num_tag):
     return [parts, app_num]
 
 #############################################################################
-#
+# Get nested lists of tags content from particular tag
 #############################################################################
 def get_multi_parts(xml_part, parts_tag, app_num_tag):
 
@@ -47,7 +47,7 @@ def get_multi_parts(xml_part, parts_tag, app_num_tag):
 
 
 #############################################################################
-#
+# Common extract routine used for extract plain list of results
 #############################################################################
 def extract(xml_part, to_extract, parts_tag, app_num_tag):
     try:
@@ -71,7 +71,7 @@ def extract(xml_part, to_extract, parts_tag, app_num_tag):
         return False
 
 #############################################################################
-#
+# Common extract routine used for extract nested lists of results
 #############################################################################
 def multi_extract(xml_part, to_extract, parts_tag, app_num_tag):
     try:
@@ -100,7 +100,7 @@ def multi_extract(xml_part, to_extract, parts_tag, app_num_tag):
         return False
 
 #############################################################################
-#
+# Special extractor used by agent parser
 #############################################################################
 def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
     try:
@@ -128,7 +128,7 @@ def w_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
         return False
 
 #############################################################################
-#
+# Special extractor used by agent parser (old XML version)
 #############################################################################
 def w_old_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
     try:
@@ -153,7 +153,7 @@ def w_old_extract(xml_part, to_extract, parts_tag, app_num_tag, add_tag=None):
         return False
 
 #############################################################################
-#
+# Get and format classification string for classification parser
 #############################################################################
 def get_class(arg):
 
@@ -165,7 +165,7 @@ def get_class(arg):
     return [fpt if fpt[0] != '0' else fpt[1:], sbc]
 
 #############################################################################
-#
+# Special extractor used by classification parser
 #############################################################################
 def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
     try:
@@ -209,7 +209,7 @@ def cl_extract(xml_part, to_extract, parts_tag, app_num_tag):
         return False
 
 #############################################################################
-#
+# Special extractor used by classification parser (old XML version)
 #############################################################################
 def cl_old_extract(xml_part, to_extract, parts_tag, app_num_tag):
     try:
@@ -253,7 +253,7 @@ def cl_old_extract(xml_part, to_extract, parts_tag, app_num_tag):
         return False
 
 #############################################################################
-#
+# Special extractor used by assignment XML parser
 #############################################################################
 def as_extract(xml_part, to_extract, parts_tag=None, sub_tags=None):
     try:

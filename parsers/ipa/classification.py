@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Extract lassiication data from Applicaton XML file
 #############################################################################
 import xml.etree.ElementTree as ET
 import importlib

@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Extract assignee data from Assignment XML file
 #############################################################################
 import xml.etree.ElementTree as ET
 import importlib

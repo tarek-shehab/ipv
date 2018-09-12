@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Extract agent data from OLD Application XML file
 #############################################################################
 import xml.etree.ElementTree as ET
 import importlib

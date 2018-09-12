@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Extract provisional data from OLD Grant XML file
 #############################################################################
 import xml.etree.ElementTree as ET
 import importlib

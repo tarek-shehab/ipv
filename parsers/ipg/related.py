@@ -1,5 +1,5 @@
 #############################################################################
-#
+# Extract related publication data from Grant XML file
 #############################################################################
 import xml.etree.ElementTree as ET
 import importlib
