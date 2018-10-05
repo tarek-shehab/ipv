@@ -22,6 +22,9 @@ def create_line(xml_part):
 
     app_num_tag = ".//application-reference/document-id/doc-number"
 
-    parts_tag = ".//applicants/applicant"
+# 2005-2013 tag
+#    parts_tag = ".//applicants/applicant"
+# 2014-.... tag
+    parts_tag = ".//us-applicants/us-applicant"
 
     return helpers.extract(xml_part, to_extract, parts_tag, app_num_tag)

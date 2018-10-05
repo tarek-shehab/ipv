@@ -4,7 +4,7 @@ helpers = importlib.import_module('.helpers', 'models')
 ######################################################################
 #
 ######################################################################
-table  = 'old_application_main'
+table  = 'application_main'
 body   =   ('(app_id BIGINT,'
             'earliest_pub_country STRING,'
             'earliest_pub_number STRING,'

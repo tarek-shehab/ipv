@@ -57,5 +57,7 @@ custom_user_agent = [
 	    "Opera/9.80 (Windows NT 6.2; WOW64; Edition Ukraine Local) Presto/2.12.388 Version/12.17"
 	    ] 
 
-def get_user_agent():
-    return custom_user_agent[random.randint(0, len(custom_user_agent)-1)]
+def get_user_agent(num=None):
+    if not num:
+        return custom_user_agent[random.randint(0, len(custom_user_agent)-1)]
+    return custom_user_agent[num]
