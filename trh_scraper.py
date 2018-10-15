@@ -243,8 +243,8 @@ if __name__ == "__main__":
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 
-    year = '2010'
-#    year = sys.argv[1]
+#    year = '2010'
+    year = sys.argv[1]
 
     portion = get_tasks(year)
 
@@ -281,9 +281,10 @@ if __name__ == "__main__":
 
         if start_amount == portion['size']:
             retries += 1
-            start_amount = portion['size']
 
-        if portion['len'] == 0 or retries == 2 :
+        start_amount = portion['size']
+
+        if portion['size'] == 0 or retries == 2 :
             enough = True
             logging.info('Processing finised')
             message = 'All possible App IDs has been extracted!' if portion['size'] == 0 else 'Retries limit exceeded!'
