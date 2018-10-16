@@ -311,7 +311,7 @@ if __name__ == "__main__":
         total_ids += len(ids)
         logging.info(('STAT: IDs extracted during current run    : %s') % (str(len(ids))))
         logging.info(('STAT: IDs extracted during current session: %s') % (str(total_ids)))
-        logging.info(('STAT: IDs remaining                       : %s') % (str(total_amount - total_ids)))
+        logging.info(('STAT: IDs remaining                       : %s') % (str(start_amount - total_ids)))
         portion = get_tasks(year, args.block_size)
 
         if start_amount == portion['size']:
