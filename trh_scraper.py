@@ -21,9 +21,10 @@ from config import cfg
 from routines.send_mail import send_mail
 import requests
 import os.path
-from random import uniform, randint
+from random import uniform, randint, shuffle
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 import sys
+import argparse
 
 #############################################################################
 #
@@ -47,7 +48,7 @@ def run_query(query):
 #############################################################################
 # Get list of partitions and application Ids
 #############################################################################
-def get_tasks(year, page_size=50):
+def get_tasks(year, page_size):
 
     sql = (
            'SELECT t5.app_id as app_id, t5.proc_date as proc_date FROM '
@@ -64,7 +65,8 @@ def get_tasks(year, page_size=50):
            'ON t5.app_id = t1.app_id '
            'WHERE t1.app_id IS NULL AND SUBSTR(t5.proc_date,1,4) = \'%s\' ') % (year)
 
-    res = run_query(sql)
+    res = list(run_query(sql))
+    shuffle(res)
     result = {'size': len(res)}
     if len(res) > page_size:
         start_pos = randint(0,len(res)-page_size)
@@ -109,7 +111,7 @@ def hdfs_write(proc_date, result):
 #############################################################################
 #
 #############################################################################
-@retry(stop_max_attempt_number=10)
+@retry(stop_max_attempt_number=10, wait_random_min=2000, wait_random_max=5000)
 def get_captcha(url, site_key):
     try:
         logging.info('Waiting for recaptcha to be solved ...')
@@ -123,6 +125,13 @@ def get_captcha(url, site_key):
         logging.info('Failed to resolve captcha: ' + err)
         raise err
 
+#############################################################################
+# --year CLI parameter validation
+#############################################################################
+def check_year(value):
+    if int(value) < 2001 and int(value) > 2050:
+        raise argparse.ArgumentTypeError("%s is an incorrect procesing year" % value)
+    return value
 
 #############################################################################
 #
@@ -212,17 +221,25 @@ def scrape_site(app_ids):
                 logging.info('Switch to main tab')
             except Exception as err:
                 logging.error(('Failed to extract data for App ID: %s') % (str(elm[0])))
-                name = ('shot_%s.png') % (str(int(time())))
-#                driver.save_screenshot(name)
-                logging.error(err)
+                err = str(err).strip()[8:]
+                if err == '':
+                    message = 'No transaction history info for this App ID!'
+                elif 'Unable to locate element' in err:
+                    message = 'PublicPair service did not respond or page is stuck!'
+                else:
+                    message = err
+                logging.error(message)
                 continue
 
 #        driver.save_screenshot('./shot.png')
     except Exception as err:
         logging.error('Failed to process!')
-        name = ('shot_%s.png') % (str(int(time())))
-#        driver.save_screenshot(name)
-        logging.error(str(err))
+        err = str(err).strip()[8:]
+        if 'Unable to locate element' in err:
+            message = 'PublicPair service did not respond or page is stuck!'
+        else:
+            message = err
+        logging.error(message)
     finally:
         driver.quit()
         logging.info(('reCaptcha bypass test finished in %s sec.') % (round(time()-st,2)))
@@ -231,6 +248,26 @@ def scrape_site(app_ids):
 
 #############################################################################
 if __name__ == "__main__":
+    descr = ('Transaction history screper v0.1\n'
+             'Author: Alex Kovalsky')
+    arg_parser = argparse.ArgumentParser(description=descr)
+    arg_parser.add_argument("--year", type=check_year,
+            default = datetime.now().year,
+            help="Target year")
+    arg_parser.add_argument("--block_size", type=int,
+            default = 50,
+            help="App IDs block size (default = 50)")
+    arg_parser.add_argument("--retries", type=int,
+            default = 2,
+            help="Numbers of retries for App IDs block (default = 2)")
+
+    if len(sys.argv) == 1:
+        arg_parser.print_help()
+        sys.exit(1)
+
+    args = arg_parser.parse_args()
+    year = args.year
+
     log_file_name = ('./log/nocaptcha/scrap_%s.log') % (str(datetime.now())[2:19].replace(' ','_'))
 
     logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s',
@@ -243,10 +280,8 @@ if __name__ == "__main__":
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 
-#    year = '2010'
-    year = sys.argv[1]
 
-    portion = get_tasks(year)
+    portion = get_tasks(year, args.block_size)
 
     logging.info(('Total numbers of App Ids for year: %s, is: %s') % (year, portion['size']))
 
@@ -258,7 +293,7 @@ if __name__ == "__main__":
     parser.set_env()
 
     while not enough:
-        logging.info(('Get %s App IDs to extract transaction history info') % (len(portion['tasks'])))
+        logging.info(('Got %s App IDs to extract transaction history info') % (len(portion['tasks'])))
 
         res = scrape_site(portion['tasks'])
         ids = set()
@@ -266,8 +301,8 @@ if __name__ == "__main__":
         if res:
             for ln in res: 
                 ids.add(ln[0])
-                ln[-1] = ln[-1]+"\n"
-                result.append("\t".join(ln))
+                ln[-1] = ln[-1]
+                result.append(u"\t".join(ln).encode('utf-8').strip()+"\n")
 
             marker = str(int(time()))
             hdfs_write(marker, result)
@@ -277,14 +312,16 @@ if __name__ == "__main__":
         logging.info(('STAT: IDs extracted during current run    : %s') % (str(len(ids))))
         logging.info(('STAT: IDs extracted during current session: %s') % (str(total_ids)))
         logging.info(('STAT: IDs remaining                       : %s') % (str(total_amount - total_ids)))
-        portion = get_tasks(year)
+        portion = get_tasks(year, args.block_size)
 
         if start_amount == portion['size']:
             retries += 1
+        else:
+            retries = 0
 
         start_amount = portion['size']
 
-        if portion['size'] == 0 or retries == 2 :
+        if portion['size'] == 0 or retries == args.retries:
             enough = True
             logging.info('Processing finised')
             message = 'All possible App IDs has been extracted!' if portion['size'] == 0 else 'Retries limit exceeded!'
