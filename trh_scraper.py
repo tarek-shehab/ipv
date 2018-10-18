@@ -144,15 +144,28 @@ def scrape_site(app_ids):
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument(('user-agent=%s') % (ua.get_user_agent(5)))
+#    chrome_options.add_argument('start-maximized')
+#    chrome_options.add_argument('disable-infobars')
+#    chrome_options.add_argument("--disable-extensions")
+#    chrome_options.add_argument("--enable-javascript")
+    chrome_options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+    chrome_options.add_argument(('user-agent=%s') % (ua.get_user_agent()))
     driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=chrome_options,
                                   service_args=['--verbose', '--log-path=./log/chromedriver.log'])
-    driver.set_window_size(1024, 1024)
+    driver.set_window_size(1280, 1024)
 
     target_link = 'https://portal.uspto.gov/pair/PublicPair'
+#    target_link = 'https://www.showmyip.gr/'
 
     try:
+#    if True:
         driver.get(target_link)
+        try:
+            WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.CLASS_NAME ,'g-recaptcha')))
+        except Exception as err:
+            raise Exception('Message: Failed to load captcha page' + str(err))
+
         main_win = driver.current_window_handle
 
         site_key = driver.find_element_by_class_name('g-recaptcha').get_attribute('data-sitekey')
@@ -176,8 +189,8 @@ def scrape_site(app_ids):
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH ,'//input[@id="number_id"]')))
-        except:
-            raise('Failed to load starting page')
+        except Exception as err:
+            raise Exception('Message: Failed to load starting page' + str(err))
 
         for elm in app_ids:
             try:
@@ -221,7 +234,7 @@ def scrape_site(app_ids):
                 logging.info('Switch to main tab')
             except Exception as err:
                 logging.error(('Failed to extract data for App ID: %s') % (str(elm[0])))
-                err = str(err).strip()[8:]
+                err = str(err).strip()[8:].strip()
                 if err == '':
                     message = 'No transaction history info for this App ID!'
                 elif 'Unable to locate element' in err:
@@ -232,6 +245,7 @@ def scrape_site(app_ids):
                 continue
 
 #        driver.save_screenshot('./shot.png')
+
     except Exception as err:
         logging.error('Failed to process!')
         err = str(err).strip()[8:]
@@ -311,7 +325,7 @@ if __name__ == "__main__":
         total_ids += len(ids)
         logging.info(('STAT: IDs extracted during current run    : %s') % (str(len(ids))))
         logging.info(('STAT: IDs extracted during current session: %s') % (str(total_ids)))
-        logging.info(('STAT: IDs remaining                       : %s') % (str(start_amount - total_ids)))
+        logging.info(('STAT: IDs remaining                       : %s') % (str(start_amount)))
         portion = get_tasks(year, args.block_size)
 
         if start_amount == portion['size']:
