@@ -153,6 +153,7 @@ def scrape_site(app_ids):
     driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=chrome_options,
                                   service_args=['--verbose', '--log-path=./log/chromedriver.log'])
     driver.set_window_size(1280, 1024)
+    driver.implicitly_wait(10)
 
     target_link = 'https://portal.uspto.gov/pair/PublicPair'
 #    target_link = 'https://www.showmyip.gr/'
@@ -186,6 +187,7 @@ def scrape_site(app_ids):
 
         logging.info('Page has been submitted')
 
+
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH ,'//input[@id="number_id"]')))
@@ -200,9 +202,15 @@ def scrape_site(app_ids):
                 search_button.click()
 
                 logging.info(('Application ID: %s has been sent') % (str(elm[0])))
-
-                tr_history_tab = WebDriverWait(driver, 15).until(
-                    EC.presence_of_element_located((By.XPATH ,'//a[@tabindex="12"]')))
+                try:
+                    tr_history_tab = WebDriverWait(driver, 15).until(
+                        EC.presence_of_element_located((By.XPATH ,'//a[@tabindex="12"]')))
+                except:
+                    err_message = driver.find_element_by_xpath('//table[@class="epoTableBorder"]/tr/td/b')
+                    if not err_message:
+                        raise Exception('Error message not found')
+                    else:
+                        raise Exception(err_message.text.strip().replace('<br>',''))
 
 #                tr_history_tab = driver.find_element_by_xpath('//a[@tabindex="12"]')
 
@@ -211,7 +219,8 @@ def scrape_site(app_ids):
                 logging.info('Switch to transaction history tab')
 
                 WebDriverWait(driver, 15).until(
-                    EC.presence_of_element_located((By.ID ,'pagedescription')))
+                    EC.presence_of_element_located((By.CLASS_NAME ,'wpsTableNrmRow')))
+#                    EC.presence_of_element_located((By.ID ,'pagedescription')))
 
                 table = driver.find_elements_by_xpath('//tr[@class="wpsTableNrmRow" or @class="wpsTableShdRow"]/td')
 
@@ -228,8 +237,13 @@ def scrape_site(app_ids):
 
                 main_tab = driver.find_element_by_xpath('//a[@tabindex="6"]')
                 main_tab.click()
-                WebDriverWait(driver, 15).until(
-                    EC.presence_of_element_located((By.XPATH ,'//input[@id="number_id"]')))
+
+                try:
+                    WebDriverWait(driver, 15).until(
+                        EC.presence_of_element_located((By.XPATH ,'//input[@id="number_id"]')))
+                except Exception as err:
+                    raise Exception('Message: Stop iteration, captcha resolving needed!')
+
 
                 logging.info('Switch to main tab')
             except Exception as err:
@@ -238,10 +252,14 @@ def scrape_site(app_ids):
                 if err == '':
                     message = 'No transaction history info for this App ID!'
                 elif 'Unable to locate element' in err:
-                    message = 'PublicPair service did not respond or page is stuck!'
+                    message = 'PublicPair service did not respond or page is stuck!'+ str(err)
+                    raise Exception(message)
+                elif 'Stop iteration' in err:
+                    raise Exception(err)
                 else:
                     message = err
                 logging.error(message)
+                driver.save_screenshot(('./shot%s.png') % (str(int(time()))))
                 continue
 
 #        driver.save_screenshot('./shot.png')
