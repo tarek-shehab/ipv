@@ -115,7 +115,8 @@ def hdfs_write(proc_date, result):
 def get_captcha(url, site_key):
     try:
         logging.info('Waiting for recaptcha to be solved ...')
-        api_key = '3d9e48e7ad1d64de378bc1dea4fd472e'
+#        api_key = '3d9e48e7ad1d64de378bc1dea4fd472e'
+        api_key = 'c76f49b1ee12f7739faebf78de3534f0'
         client = AnticaptchaClient(api_key)
         task = NoCaptchaTaskProxylessTask(url, site_key)
         job = client.createTask(task)
