@@ -25,6 +25,7 @@ from random import uniform, randint, shuffle
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 import sys
 import argparse
+import json
 
 #############################################################################
 #
@@ -111,12 +112,24 @@ def hdfs_write(proc_date, result):
 #############################################################################
 #
 #############################################################################
-@retry(stop_max_attempt_number=10, wait_random_min=2000, wait_random_max=5000)
+#@retry(stop_max_attempt_number=10, wait_random_min=2000, wait_random_max=5000)
 def get_captcha(url, site_key):
     try:
+#    if True:
         logging.info('Waiting for recaptcha to be solved ...')
 #        api_key = '3d9e48e7ad1d64de378bc1dea4fd472e'
         api_key = 'c76f49b1ee12f7739faebf78de3534f0'
+
+        headers = {'User-Agent': ua.get_user_agent(),
+                   'Content-Type': 'application/json',
+                   'Accept': 'application/json'}
+
+        api_call = ('{\"clientKey\":\"%s\"}') % (api_key)
+        url = 'https://api.anti-captcha.com/getBalance'
+        response = requests.post(url, data=api_call, headers=headers, timeout = 15).text
+        api_content = json.loads(response)
+        logging.info(('Anti-captcha balance: %s USD') % (str(api_content['balance'])))
+
         client = AnticaptchaClient(api_key)
         task = NoCaptchaTaskProxylessTask(url, site_key)
         job = client.createTask(task)
@@ -140,7 +153,7 @@ def check_year(value):
 def scrape_site(app_ids):
     result = []
     st = time()
-    logging.info('PublicPair reCaptcha bypass test started')
+    logging.info('PublicPair scraping has been started')
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('--headless')
