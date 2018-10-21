@@ -112,7 +112,7 @@ def hdfs_write(proc_date, result):
 #############################################################################
 #
 #############################################################################
-#@retry(stop_max_attempt_number=10, wait_random_min=2000, wait_random_max=5000)
+@retry(stop_max_attempt_number=10, wait_random_min=2000, wait_random_max=5000)
 def get_captcha(url, site_key):
     try:
 #    if True:
@@ -136,7 +136,7 @@ def get_captcha(url, site_key):
         job.join()
         return job.get_solution_response()
     except Exception as err:
-        logging.info('Failed to resolve captcha: ' + err)
+        logging.info('Failed to resolve captcha: ' + str(err))
         raise err
 
 #############################################################################
