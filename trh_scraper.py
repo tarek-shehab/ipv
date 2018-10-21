@@ -125,8 +125,8 @@ def get_captcha(url, site_key):
                    'Accept': 'application/json'}
 
         api_call = ('{\"clientKey\":\"%s\"}') % (api_key)
-        url = 'https://api.anti-captcha.com/getBalance'
-        response = requests.post(url, data=api_call, headers=headers, timeout = 15).text
+        service_url = 'https://api.anti-captcha.com/getBalance'
+        response = requests.post(service_url, data=api_call, headers=headers, timeout = 15).text
         api_content = json.loads(response)
         logging.info(('Anti-captcha balance: %s USD') % (str(api_content['balance'])))
 
