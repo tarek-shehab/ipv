@@ -162,7 +162,7 @@ def scrape_site(app_ids):
 #    chrome_options.add_argument('disable-infobars')
 #    chrome_options.add_argument("--disable-extensions")
 #    chrome_options.add_argument("--enable-javascript")
-    chrome_options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
+#    chrome_options.add_argument('--proxy-server=socks5://127.0.0.1:9050')
     chrome_options.add_argument(('user-agent=%s') % (ua.get_user_agent()))
     driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=chrome_options,
                                   service_args=['--verbose', '--log-path=./log/chromedriver.log'])
