@@ -117,8 +117,8 @@ def get_captcha(url, site_key):
     try:
 #    if True:
         logging.info('Waiting for recaptcha to be solved ...')
-#        api_key = '3d9e48e7ad1d64de378bc1dea4fd472e'
-        api_key = 'c76f49b1ee12f7739faebf78de3534f0'
+        api_key = '3d9e48e7ad1d64de378bc1dea4fd472e'
+#        api_key = 'c76f49b1ee12f7739faebf78de3534f0'
 
         headers = {'User-Agent': ua.get_user_agent(),
                    'Content-Type': 'application/json',
